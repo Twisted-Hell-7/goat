@@ -70,7 +70,7 @@ export function TheMoment() {
       >
         <img
           className="moment-image"
-          src="/messi/assest/gallery/messi-kissing-world-cup.jpg"
+          src="/goat/assest/gallery/messi-kissing-world-cup.jpg"
           alt="Lionel Messi kissing the FIFA World Cup trophy in Qatar, December 2022"
           style={{
             position: 'absolute',

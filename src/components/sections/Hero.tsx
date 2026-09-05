@@ -105,7 +105,7 @@ export function Hero() {
         loop
         playsInline
         preload="auto"
-        poster="/messi/assest/goat-poster.jpg"
+        poster="/goat/assest/goat-poster.jpg"
         aria-hidden="true"
         style={{
           position: 'absolute',
@@ -117,7 +117,7 @@ export function Hero() {
           opacity: 0.6,
         }}
       >
-        <source src="/messi/messi-hero-video.mp4" type="video/mp4" />
+        <source src="/goat/messi-hero-video.mp4" type="video/mp4" />
       </video>
 
       {/* z:10 — overlay */}

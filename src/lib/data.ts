@@ -21,7 +21,7 @@ export type Stat = {
   emphasis?: boolean;
 };
 
-const base = '/messi';
+const base = '/goat';
 
 export const chapters: Chapter[] = [
   {

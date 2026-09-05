@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  basePath: '/messi',
-  assetPrefix: '/messi/',
+  basePath: '/goat',
+  assetPrefix: '/goat/',
   images: { unoptimized: true },
   trailingSlash: true,
   reactStrictMode: true,
