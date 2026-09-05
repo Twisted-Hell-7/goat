@@ -1,38 +1,80 @@
-# goat
+# MESSI — The Living Archive
 
-A cinematic single-page **Messi "GOAT" tribute** site featuring a hero video, a career timeline, and a photo gallery.
+A cinematic single-page tribute to the greatest footballer who has ever lived.
+Brutalist editorial meets cinematic dark luxury. Built as an immersive web
+experience, not a fan site.
 
-## File Structure
+See `MESSI_GOAT_PRD.md` for the full specification.
 
-```
-goat/
-├── README.md                          # Project title & docs
-├── public/
-│   ├── messi-hero-video.mp4           # Hero background video
-│   └── assest/
-│       ├── goat-poster.jpg            # Video poster / fallback image
-│       ├── gallery/                   # Photo gallery section
-│       │   ├── messi-portrait.jpg
-│       │   ├── messi-barcelona-dribbling.jpg
-│       │   ├── messi-barcelona-free-kick.jpg
-│       │   ├── messi-barcelona-celebration.jpg
-│       │   ├── messi-goat-barcelona-poster.jpg
-│       │   ├── messi-argentina-world-cup-kiss.jpg
-│       │   ├── messi-argentina-celebration-pointing.jpg
-│       │   ├── messi-kissing-world-cup.jpg
-│       │   ├── messi-inter-miami-back.jpg
-│       │   ├── messi-inter-miami-training.jpg
-│       │   └── messi-boots-close-up.jpg
-│       └── timeline/                  # Career timeline section
-│           ├── rosario.jpg            # Early life / Newell's Old Boys
-│           ├── barcelona.jpg          # FC Barcelona era
-│           ├── paris.jpg              # PSG era
-│           ├── miami.webp             # Inter Miami era
-│           └── argentina.jpg          # National team / World Cup
+## Stack
+
+- **Next.js 14** (App Router, static export)
+- **TypeScript** strict mode
+- **Tailwind CSS v3** + CSS custom properties
+- **GSAP 3** + ScrollTrigger (timeline, scrub, number morph)
+- **Lenis** smooth scroll, synced to GSAP ticker
+- **Three.js** via `@react-three/fiber` + `@react-three/postprocessing`
+  (1,200-particle EmberField with bloom)
+- Fonts: **Bebas Neue** (display) + **Playfair Display Italic** (pull quotes) + **Inter** (body)
+
+## Develop
+
+```bash
+npm install
+npm run dev      # http://localhost:3000/messi
 ```
 
-## Sections (planned)
+## Build & deploy to GitHub Pages
 
-- **Hero** — full-bleed `messi-hero-video.mp4` with `goat-poster.jpg` fallback
-- **Timeline** — `rosario → barcelona → paris → miami → argentina`
-- **Gallery** — portrait, club, national team, and lifestyle shots
+```bash
+npm run deploy   # next build && gh-pages -d out
+```
+
+Then in the repo → **Settings → Pages → Source: `gh-pages` branch, root `/`**.
+Lives at `https://<user>.github.io/messi`.
+
+## Structure
+
+```
+src/
+├── app/
+│   ├── layout.tsx          # fonts, metadata, Lenis + Cursor + Loader mount
+│   ├── page.tsx            # 7-section composition
+│   └── globals.css         # design tokens, reset, custom cursor, Lenis
+├── components/
+│   ├── Loader.tsx          # 0.8s black screen + gold progress line
+│   ├── Cursor.tsx          # magnetic cursor, desktop only
+│   ├── Nav.tsx             # fixed transparent nav + mobile takeover
+│   ├── SmoothScroll.tsx    # Lenis + GSAP ticker sync
+│   ├── sections/
+│   │   ├── Hero.tsx        # video + EmberField + title clip-path
+│   │   ├── Numbers.tsx     # stat counter grid (gold World Cup)
+│   │   ├── Chapters.tsx    # pinned horizontal scroll, 5 eras
+│   │   ├── Frames.tsx      # editorial masonry + custom Lightbox
+│   │   ├── Argument.tsx    # Guardiola quote, word-scrub illumination
+│   │   ├── TheMoment.tsx   # full-bleed Qatar World Cup image
+│   │   └── Coda.tsx        # footer with open em dash "1987 —"
+│   ├── three/
+│   │   └── EmberField.tsx   # dynamic-imported particle system
+│   └── ui/                 # (shared primitives, add as needed)
+├── hooks/
+│   └── useReducedMotion.ts
+└── lib/
+    ├── data.ts             # chapters, frames, stats, trophies
+    └── gsap.ts             # plugin registration
+```
+
+## Performance targets
+
+- LCP < 2.5s · INP < 100ms · CLS < 0.05
+- JS bundle < 380KB gz (Three.js dynamic-imported, GSAP tree-shaken)
+- Video compressed to < 12MB, all images WebP
+- `prefers-reduced-motion` honored across every animation
+
+## Accessibility
+
+- `cursor: none` on fine pointers (custom cursor); system cursor on touch
+- All images have descriptive `alt` (not "photo of Messi")
+- Lightbox: `role="dialog"`, `aria-modal`, ESC + arrow keys, focus trap
+- Color contrast: chalk on void 16:1, gold on void 9.4:1 (WCAG AAA)
+- Focus ring: 2px gold outline, 3px offset

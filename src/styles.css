@@ -1,7 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* ─── tokens ───────────────────────────────────────── */
 :root {
   --void: #030303;
   --obsidian: #0d0d0d;
@@ -12,6 +9,10 @@
   --gold-glow: rgba(232, 197, 71, 0.35);
   --scar-red: #c0392b;
   --ice-blue: #a8c5d8;
+
+  --font-display: 'Bebas Neue', Impact, sans-serif;
+  --font-editorial: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
 
   --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
   --ease-power3: cubic-bezier(0.77, 0, 0.175, 1);
@@ -27,7 +28,7 @@ body {
   padding: 0;
   background: var(--void);
   color: var(--chalk);
-  font-family: var(--font-body), system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
@@ -58,7 +59,9 @@ button {
   color: inherit;
   background: none;
   border: none;
+  padding: 0;
   cursor: none;
+  text-align: left;
 }
 
 @media (pointer: coarse) {
@@ -73,7 +76,6 @@ video {
   max-width: 100%;
 }
 
-/* hide native cursor on interactive elements, custom cursor takes over */
 @media (pointer: fine) {
   a,
   button,
@@ -83,40 +85,25 @@ video {
   }
 }
 
-/* selection */
 ::selection {
   background: var(--gold-electric);
   color: var(--void);
 }
 
-/* scrollbar — slim and invisible-ish */
 ::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
 
-/* focus ring */
 :focus-visible {
   outline: 2px solid var(--gold-electric);
   outline-offset: 3px;
 }
 
-/* font-feature numeric tabular for stat displays */
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-/* utility: section spacing */
-.section {
-  position: relative;
-  width: 100%;
-}
-
-.section--full {
-  min-height: 100vh;
-}
-
-/* the diagonal hatching used in Numbers */
 .bg-hatch {
   background-image: repeating-linear-gradient(
     45deg,
@@ -127,7 +114,6 @@ video {
   );
 }
 
-/* reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -139,20 +125,38 @@ video {
   }
 }
 
-/* Lenis: required html height */
 html.lenis,
 html.lenis body {
   height: auto;
 }
-
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
-
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
-
 .lenis.lenis-stopped {
   overflow: hidden;
+}
+
+/* utility text classes */
+.t-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 0.9;
+}
+.t-editorial {
+  font-family: var(--font-editorial);
+  font-style: italic;
+}
+.t-body {
+  font-family: var(--font-body);
+}
+.t-meta {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--chalk-dim);
+  text-transform: uppercase;
 }
