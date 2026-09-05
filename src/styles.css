@@ -34,14 +34,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  cursor: none;
-}
-
-@media (pointer: coarse) {
-  html,
-  body {
-    cursor: auto;
-  }
 }
 
 body {
@@ -60,29 +52,14 @@ button {
   background: none;
   border: none;
   padding: 0;
-  cursor: none;
   text-align: left;
-}
-
-@media (pointer: coarse) {
-  button {
-    cursor: pointer;
-  }
+  cursor: pointer;
 }
 
 img,
 video {
   display: block;
   max-width: 100%;
-}
-
-@media (pointer: fine) {
-  a,
-  button,
-  [role='button'],
-  [data-cursor='hover'] {
-    cursor: none;
-  }
 }
 
 ::selection {

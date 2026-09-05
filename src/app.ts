@@ -1,6 +1,5 @@
 import { prefersReducedMotion } from './lib/motion';
 import { mountLoader } from './components/Loader';
-import { mountCursor } from './components/Cursor';
 import { mountNav } from './components/Nav';
 import { mountSmoothScroll } from './components/SmoothScroll';
 import { mountHero } from './sections/Hero';
@@ -30,7 +29,6 @@ export function mount(root: HTMLElement) {
 
   // 2. Always-on chrome
   mountLoader(ctx);
-  mountCursor(ctx);
   mountNav(ctx);
   const lenis = mountSmoothScroll(ctx);
 
