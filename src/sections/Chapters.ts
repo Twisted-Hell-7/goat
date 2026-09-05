@@ -121,20 +121,28 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }, leni
 
   // pin + horizontal scrub
   registerGSAP();
+
+  // ── measure first, then register ──────────────────────────────
+  // Force layout so flex children have their final scrollWidth.
+  void track.offsetHeight;
+  const distance = Math.max(0, track.scrollWidth - window.innerWidth);
+
+  if (distance === 0) {
+    // no horizontal room — bail out gracefully
+    return;
+  }
+
   gsap.set(track, { x: 0 });
 
-  const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
-
   const tween = gsap.to(track, {
-    x: () => -getDistance(),
+    x: -distance,
     ease: 'none',
     scrollTrigger: {
       trigger: section,
       start: 'top top',
-      end: () => `+=${getDistance()}`,
+      end: `+=${distance}`,
       pin: true,
       scrub: 1.5,
-      invalidateOnRefresh: true,
       anticipatePin: 1,
     },
   });
@@ -142,7 +150,7 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }, leni
   gsap.to(railFill, {
     scaleX: 1,
     ease: 'none',
-    scrollTrigger: { trigger: section, start: 'top top', end: () => `+=${getDistance()}`, scrub: true },
+    scrollTrigger: { trigger: section, start: 'top top', end: `+=${distance}`, scrub: true },
   });
 
   // per-panel image parallax
@@ -159,7 +167,4 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }, leni
       }
     );
   });
-
-  // ensure ScrollTrigger measures after layout settles
-  requestAnimationFrame(() => ScrollTrigger.refresh());
 }
