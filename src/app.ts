@@ -36,7 +36,7 @@ export function mount(root: HTMLElement) {
   const queue = [
     () => mountHero(ctx),
     () => mountNumbers(ctx),
-    () => mountChapters(ctx, lenis),
+    () => mountChapters(ctx),
     () => mountFrames(ctx),
     () => mountArgument(ctx),
     () => mountTheMoment(ctx),
