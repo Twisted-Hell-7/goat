@@ -121,7 +121,10 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }, leni
 
   // pin + horizontal scrub
   registerGSAP();
-  const getDistance = () => track.scrollWidth - window.innerWidth;
+  gsap.set(track, { x: 0 });
+
+  const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+
   const tween = gsap.to(track, {
     x: () => -getDistance(),
     ease: 'none',
@@ -156,4 +159,7 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }, leni
       }
     );
   });
+
+  // ensure ScrollTrigger measures after layout settles
+  requestAnimationFrame(() => ScrollTrigger.refresh());
 }
