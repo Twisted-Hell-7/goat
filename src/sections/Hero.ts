@@ -90,10 +90,10 @@ export async function mountHero(ctx: { root: HTMLElement; reduced: boolean }) {
     margin: '0',
     fontFamily: 'var(--font-display)',
     fontSize: 'clamp(72px, 14vw, 220px)',
-    lineHeight: '0.85',
-    letterSpacing: '0.02em',
+    lineHeight: '0.9',
+    letterSpacing: '-0.04em',
     color: 'var(--chalk)',
-    textTransform: 'uppercase',
+    fontWeight: '700',
   } as CSSStyleDeclaration);
   'MESSI'.split('').forEach((ch) => {
     const span = document.createElement('span');

@@ -1,109 +1,154 @@
-import { gsap, registerGSAP, ScrollTrigger } from '../lib/gsap';
+import { gsap, registerGSAP } from '../lib/gsap';
 import { stats } from '../lib/data';
+
+type Align = 'left' | 'right';
+type Placement = {
+  cell: string;
+  tier: string;
+  align: Align;
+  /** visual order on mobile (gold goes last) */
+  order: number;
+  sub?: string;
+};
+
+// Staggered ledger: hero figure opens, mid stats sit on a shared
+// hairline rule, the gold World Cup "1" is isolated with silence above it.
+const PLACEMENT: Placement[] = [
+  { cell: 'num-cell--hero', tier: 'num-value--hero', align: 'left', order: 0, sub: 'Club + country · 2004 —' },
+  { cell: 'num-cell--side', tier: 'num-value--mid', align: 'left', order: 1 },
+  { cell: 'num-cell--row2a', tier: 'num-value--mid', align: 'left', order: 2 },
+  { cell: 'num-cell--gold', tier: 'num-value--gold', align: 'right', order: 6, sub: 'Qatar 2022 · Lusail' },
+  { cell: 'num-cell--row2b', tier: 'num-value--mid', align: 'left', order: 3 },
+  { cell: 'num-cell--row2c', tier: 'num-value--mid', align: 'left', order: 4 },
+  { cell: 'num-cell--copa', tier: 'num-value--mid', align: 'left', order: 5 },
+];
 
 export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
   const section = ctx.root.querySelector<HTMLElement>('#numbers')!;
   const reduced = ctx.reduced;
 
   section.classList.add('section', 'section--full', 'bg-hatch');
-  Object.assign(section.style, {
-    position: 'relative',
-    padding: 'clamp(80px, 12vh, 160px) clamp(20px, 4vw, 56px)',
-    display: 'grid',
-    placeItems: 'center',
-    background: 'var(--void)',
-  } as CSSStyleDeclaration);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'num-wrap';
+
+  const head = document.createElement('div');
+  head.className = 'num-head';
+  const eyebrow = document.createElement('span');
+  eyebrow.className = 'num-eyebrow';
+  eyebrow.innerHTML = '01 <span>— The Reckoning</span>';
+  const note = document.createElement('span');
+  note.className = 'num-note';
+  note.textContent = 'Club + country · 2004 —';
+  head.append(eyebrow, note);
 
   const grid = document.createElement('div');
-  Object.assign(grid.style, {
-    width: '100%',
-    maxWidth: '1280px',
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-    gap: 'clamp(24px, 5vw, 80px)',
-  } as CSSStyleDeclaration);
-  section.append(grid);
+  grid.className = 'num-grid';
+  grid.setAttribute('role', 'list');
+  grid.setAttribute('aria-label', 'Lionel Messi career statistics');
 
-  const items: HTMLElement[] = [];
+  type Row = { cell: HTMLElement; value: HTMLElement; label: HTMLElement; target: number; gold: boolean };
+  const rows: Row[] = [];
+
   stats.forEach((s, i) => {
-    const isHero = i === 0;
-    const isEmph = !!s.emphasis;
-    const size = isHero ? 'clamp(72px, 10vw, 140px)' : 'clamp(56px, 7vw, 96px)';
+    const p = PLACEMENT[i];
+    const gold = !!s.emphasis;
 
-    const item = document.createElement('div');
-    item.className = 'stat';
-    item.dataset.value = String(s.value);
-    item.dataset.emphasis = String(!!s.emphasis);
-    Object.assign(item.style, {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      alignItems: isEmph ? 'flex-end' : 'flex-start',
-      gridColumn: isHero ? 'span 2' : 'span 1',
-      textAlign: isEmph ? 'right' : 'left',
-    } as CSSStyleDeclaration);
+    const cell = document.createElement('div');
+    cell.className = `num-cell ${p.cell}`;
+    cell.setAttribute('role', 'listitem');
+    cell.setAttribute('aria-label', `${s.label}: ${s.value}`);
+    cell.style.order = String(p.order);
+
+    const index = document.createElement('span');
+    index.className = 'num-index';
+    index.setAttribute('aria-hidden', 'true');
+    index.textContent = `${String(i + 1).padStart(2, '0')} / 07`;
 
     const value = document.createElement('span');
-    value.className = 'stat-value tabular';
-    Object.assign(value.style, {
-      fontFamily: 'var(--font-display)',
-      fontSize: size,
-      lineHeight: '0.9',
-      color: isEmph ? 'var(--gold-electric)' : 'var(--chalk)',
-      letterSpacing: '0.02em',
-    } as CSSStyleDeclaration);
+    value.className = `num-value tabular ${p.tier}`;
+    value.setAttribute('aria-hidden', 'true');
     value.textContent = '0';
 
     const label = document.createElement('span');
-    label.className = 'stat-label';
-    Object.assign(label.style, {
-      fontFamily: 'var(--font-body)',
-      fontSize: '12px',
-      letterSpacing: '0.16em',
-      color: 'var(--chalk-dim)',
-      textTransform: 'uppercase',
-      opacity: '0',
-    } as CSSStyleDeclaration);
+    label.className = 'num-label';
     label.textContent = s.label;
 
-    item.append(value, label);
-    grid.append(item);
-    items.push(item);
+    cell.append(index, value, label);
+
+    if (p.sub) {
+      const sub = document.createElement('span');
+      sub.className = 'num-sub';
+      sub.textContent = p.sub;
+      cell.append(sub);
+    }
+
+    grid.append(cell);
+    rows.push({ cell, value, label, target: s.value, gold });
   });
 
+  wrap.append(head, grid);
+  section.append(wrap);
+
+  const setFinal = (r: Row) => {
+    r.value.textContent = String(r.target);
+    r.label.style.opacity = '1';
+  };
+
   if (reduced) {
-    items.forEach((it) => {
-      (it.querySelector('.stat-value') as HTMLElement).textContent = it.dataset.value!;
-      (it.querySelector('.stat-label') as HTMLElement).style.opacity = '1';
-    });
+    rows.forEach(setFinal);
     return;
   }
 
   registerGSAP();
-  const tl = gsap.timeline({ scrollTrigger: { trigger: section, start: 'top 75%' } });
 
-  items.forEach((it, i) => {
-    const target = Number(it.dataset.value);
-    const isEmph = it.dataset.emphasis === 'true';
+  gsap.set(head, { opacity: 0, y: 16 });
+  gsap.set(
+    rows.map((r) => r.label),
+    { opacity: 0, y: 12 }
+  );
+
+  const tl = gsap.timeline({
+    scrollTrigger: { trigger: section, start: 'top 70%' },
+  });
+
+  tl.to(head, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' }, 0);
+
+  // Animation order: hero → mids in ledger order → gold lands last, in silence.
+  const seq = [...rows.filter((r) => !r.gold)];
+  const gold = rows.find((r) => r.gold)!;
+
+  seq.forEach((r, k) => {
+    const at = 0.1 + k * 0.12;
+    const dur = k === 0 ? 2.0 : 1.2;
     const obj = { v: 0 };
-    const valueEl = it.querySelector('.stat-value') as HTMLElement;
-    const labelEl = it.querySelector('.stat-label') as HTMLElement;
-
     tl.to(
       obj,
       {
-        v: target,
-        duration: isEmph ? 1.6 : 1.2,
+        v: r.target,
+        duration: dur,
         ease: 'expo.out',
-        onUpdate: () => (valueEl.textContent = String(Math.round(obj.v))),
+        onUpdate: () => (r.value.textContent = String(Math.round(obj.v))),
+        onComplete: () => (r.value.textContent = String(r.target)),
       },
-      i * 0.15
+      at
     );
-    tl.to(
-      labelEl,
-      { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
-      i * 0.15 + 1.0
-    );
-    if (i === items.length - 1) tl.to({}, { duration: 0.8 });
+    tl.to(r.label, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, at + dur * 0.7);
   });
+
+  const lastStart = 0.1 + (seq.length - 1) * 0.12;
+  const goldAt = lastStart + 1.2 + 0.8;
+  const g = { v: 0 };
+  tl.to(
+    g,
+    {
+      v: gold.target,
+      duration: 1.6,
+      ease: 'expo.out',
+      onUpdate: () => (gold.value.textContent = String(Math.round(g.v))),
+      onComplete: () => (gold.value.textContent = String(gold.target)),
+    },
+    goldAt
+  );
+  tl.to(gold.label, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, goldAt + 1.1);
 }

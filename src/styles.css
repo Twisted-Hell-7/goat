@@ -1,18 +1,27 @@
 /* ─── tokens ───────────────────────────────────────── */
 :root {
+  /* Pitch Void Telemetry · Stitch */
   --void: #030303;
   --obsidian: #0d0d0d;
+  --obsidian-elevated: #141414;
   --chalk: #ebebeb;
   --chalk-dim: #6b6b6b;
+  --chalk-subtle: #333333;
   --gold-electric: #e8c547;
   --gold-ghost: rgba(232, 197, 71, 0.08);
   --gold-glow: rgba(232, 197, 71, 0.35);
   --scar-red: #c0392b;
   --ice-blue: #a8c5d8;
+  --ice-blue-ghost: rgba(168, 197, 216, 0.08);
+  --ice-blue-glow: rgba(168, 197, 216, 0.25);
+  --border-hairline: rgba(235, 235, 235, 0.12);
+  --border-active: rgba(168, 197, 216, 0.45);
 
-  --font-display: 'Bebas Neue', Impact, sans-serif;
-  --font-editorial: 'Playfair Display', Georgia, serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* legacy aliases (kept so any stale reference still resolves) */
+  --font-editorial: var(--font-display);
+  --font-body: var(--font-mono);
 
   --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
   --ease-power3: cubic-bezier(0.77, 0, 0.175, 1);
@@ -28,9 +37,10 @@ body {
   padding: 0;
   background: var(--void);
   color: var(--chalk);
-  font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.7;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -91,6 +101,34 @@ video {
   );
 }
 
+.label-telemetry {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--chalk-dim);
+  text-transform: uppercase;
+}
+.label-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.hairline {
+  border: 1px solid var(--border-hairline);
+}
+
+.bg-hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(235, 235, 235, 0.03) 0,
+    rgba(235, 235, 235, 0.03) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -119,21 +157,178 @@ html.lenis body {
 /* utility text classes */
 .t-display {
   font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  line-height: 0.9;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 .t-editorial {
-  font-family: var(--font-editorial);
-  font-style: italic;
+  font-family: var(--font-display);
+  font-weight: 300;
+  letter-spacing: -0.02em;
 }
 .t-body {
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
 }
 .t-meta {
-  font-family: var(--font-body);
-  font-size: 12px;
-  letter-spacing: 0.16em;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
   color: var(--chalk-dim);
   text-transform: uppercase;
+}
+
+/* ─── Numbers ledger ─────────────────────────────────── */
+#numbers {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: clamp(80px, 12vh, 160px) clamp(20px, 4vw, 56px);
+  background-color: var(--void);
+  overflow-x: clip;
+}
+.num-wrap {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.num-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-hairline);
+  margin-bottom: clamp(44px, 7vh, 88px);
+}
+.num-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--chalk);
+}
+.num-eyebrow span {
+  color: var(--chalk-dim);
+}
+.num-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+  text-align: right;
+}
+.num-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: clamp(20px, 3vw, 40px);
+  row-gap: 0;
+}
+.num-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 26px;
+  margin-top: 26px;
+  border-top: 1px solid var(--border-hairline);
+}
+.num-cell--hero {
+  grid-column: 1 / 8;
+  grid-row: 1;
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+.num-cell--side {
+  grid-column: 8 / 13;
+  grid-row: 1;
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+  align-self: end;
+  padding-bottom: 6px;
+}
+.num-cell--row2a { grid-column: 1 / 5; grid-row: 2; }
+.num-cell--row2b { grid-column: 5 / 9; grid-row: 2; }
+.num-cell--row2c { grid-column: 9 / 13; grid-row: 2; }
+.num-cell--copa {
+  grid-column: 1 / 8;
+  grid-row: 3;
+  margin-top: clamp(48px, 8vh, 96px);
+  padding-top: 30px;
+}
+.num-cell--gold {
+  grid-column: 8 / 13;
+  grid-row: 3;
+  align-items: flex-end;
+  text-align: right;
+  margin-top: clamp(48px, 8vh, 96px);
+  padding-top: 30px;
+}
+.num-index {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--chalk-subtle);
+}
+.num-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--chalk);
+  font-variant-numeric: tabular-nums;
+}
+.num-value--hero { font-size: clamp(120px, 17vw, 230px); }
+.num-value--mid { font-size: clamp(56px, 6vw, 92px); }
+.num-value--gold {
+  font-size: clamp(88px, 11vw, 150px);
+  color: var(--gold-electric);
+}
+.num-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+}
+.num-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-subtle);
+}
+
+@media (max-width: 760px) {
+  .num-note { display: none; }
+  .num-grid {
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 20px;
+  }
+  .num-cell--hero,
+  .num-cell--gold {
+    grid-column: 1 / -1;
+  }
+  .num-cell--side,
+  .num-cell--row2a,
+  .num-cell--row2b,
+  .num-cell--row2c,
+  .num-cell--copa {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .num-cell--side {
+    border-top: 1px solid var(--border-hairline);
+    margin-top: 26px;
+    padding-top: 26px;
+    align-self: stretch;
+    padding-bottom: 0;
+  }
+  .num-cell--gold {
+    grid-row: auto;
+    margin-top: 40px;
+  }
+  .num-cell--copa { grid-row: auto; margin-top: 26px; }
+  .num-value--hero { font-size: clamp(96px, 28vw, 150px); }
 }
