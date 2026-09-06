@@ -32,8 +32,8 @@ export async function mountHero(ctx: { root: HTMLElement; reduced: boolean }) {
     opacity: '0.6',
   } as CSSStyleDeclaration);
   const source = document.createElement('source');
-  source.src = `${base}messi-hero-video.mp4`;
-  source.type = 'video/mp4';
+  source.src = `${base}messi-hero-video.webm`;
+  source.type = 'video/webm';
   video.append(source);
   // try to play (mobile/Chrome may need this even with muted)
   video.addEventListener('canplay', () => video.play().catch(() => {}));

@@ -111,4 +111,7 @@ export const navLinks = [
   { label: 'Chapters', href: '#chapters' },
   { label: 'Frames', href: '#frames' },
   { label: 'Legacy', href: '#argument' },
+  { label: 'Records', href: '#records' },
+  { label: 'Moments', href: '#moments' },
+  { label: 'Human', href: '#human' },
 ];

@@ -7,6 +7,9 @@ import { mountNumbers } from './sections/Numbers';
 import { mountChapters } from './sections/Chapters';
 import { mountFrames } from './sections/Frames';
 import { mountArgument } from './sections/Argument';
+import { mountRecords } from './sections/Records';
+import { mountMoments } from './sections/Moments';
+import { mountHuman } from './sections/Human';
 import { mountTheMoment } from './sections/TheMoment';
 import { mountCoda } from './sections/Coda';
 
@@ -19,6 +22,9 @@ export function mount(root: HTMLElement) {
       <section id="chapters"></section>
       <section id="frames"></section>
       <section id="argument"></section>
+      <section id="records"></section>
+      <section id="moments"></section>
+      <section id="human"></section>
       <section id="moment"></section>
       <footer id="coda"></footer>
     </main>
@@ -39,6 +45,9 @@ export function mount(root: HTMLElement) {
     () => mountChapters(ctx),
     () => mountFrames(ctx),
     () => mountArgument(ctx),
+    () => mountRecords(ctx),
+    () => mountMoments(ctx),
+    () => mountHuman(ctx),
     () => mountTheMoment(ctx),
     () => mountCoda(ctx),
   ];
