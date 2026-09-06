@@ -46,12 +46,13 @@ export function mountHuman(ctx: { root: HTMLElement; reduced: boolean }) {
       </div>
       <div class="bib-card bib-reveal bib-voices">
         <span class="t-meta">What they said — voices</span>
-        <blockquote class="t-editorial bib-voicetext" data-voice-text></blockquote>
-        <p class="bib-dim" data-voice-by></p>
-        <div class="bib-voicenav">
-          <button data-voice-prev aria-label="Previous quote">←</button>
-          <span class="tabular" data-voice-count></span>
-          <button data-voice-next aria-label="Next quote">→</button>
+        <div class="bib-voicelist">
+          ${voicesQuotes.map((v, k) => `
+            <figure class="bib-voicerow">
+              <span class="bib-idx">${String(k + 1).padStart(2, '0')}</span>
+              <blockquote class="t-editorial bib-voicequote">“${v.text}”</blockquote>
+              <figcaption class="bib-dim">— ${v.by}</figcaption>
+            </figure>`).join('')}
         </div>
       </div>
       <div class="bib-card bib-reveal">
@@ -59,27 +60,6 @@ export function mountHuman(ctx: { root: HTMLElement; reduced: boolean }) {
         <div class="bib-facts">${personalFacts.map((f) => `<span class="bib-pill">${f}</span>`).join('')}</div>
       </div>
     </div>`;
-
-  // Voices carousel
-  const text = section.querySelector<HTMLElement>('[data-voice-text]')!;
-  const by = section.querySelector<HTMLElement>('[data-voice-by]')!;
-  const count = section.querySelector<HTMLElement>('[data-voice-count]')!;
-  let i = 0;
-  const render = () => {
-    text.textContent = `“${voicesQuotes[i].text}”`;
-    by.textContent = `— ${voicesQuotes[i].by}`;
-    count.textContent = `${i + 1} / ${voicesQuotes.length}`;
-  };
-  const crossfade = () => {
-    if (reduced) { render(); return; }
-    gsap.to(text, { opacity: 0, y: 8, duration: 0.25, ease: 'power2.in', onComplete: () => {
-      render();
-      gsap.to(text, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' });
-    }});
-  };
-  render();
-  section.querySelector('[data-voice-prev]')!.addEventListener('click', () => { i = (i - 1 + voicesQuotes.length) % voicesQuotes.length; crossfade(); });
-  section.querySelector('[data-voice-next]')!.addEventListener('click', () => { i = (i + 1) % voicesQuotes.length; crossfade(); });
 
   if (reduced) return;
   registerGSAP();
@@ -108,9 +88,4 @@ export function mountHuman(ctx: { root: HTMLElement; reduced: boolean }) {
   if (ghost) {
     gsap.to(ghost, { yPercent: 26, ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 1 } });
   }
-  const timer = window.setInterval(() => {
-    if (!document.body.contains(section)) { window.clearInterval(timer); return; }
-    i = (i + 1) % voicesQuotes.length;
-    crossfade();
-  }, 6000);
 }

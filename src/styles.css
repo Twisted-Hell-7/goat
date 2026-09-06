@@ -509,10 +509,13 @@ html.lenis body {
 .bib-date { color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
 .bib-injection { margin: 40px 0; padding: clamp(40px, 6vw, 72px) clamp(20px, 4vw, 64px); border: 1px solid var(--border-hairline); border-radius: 10px; background: var(--void); text-align: center; }
 .bib-injectext { font-size: clamp(26px, 3.4vw, 46px); line-height: 1.3; margin: 20px auto 0; max-width: 24ch; }
-.bib-voicetext { font-size: clamp(28px, 3.4vw, 48px); line-height: 1.2; margin: 8px 0 16px; min-height: 3em; }
-.bib-voicenav { display: flex; align-items: center; gap: 16px; margin-top: 20px; }
-.bib-voicenav button { border: 1px solid var(--border-hairline); border-radius: 999px; width: 44px; height: 44px; font-size: 18px; transition: border-color 200ms ease; display: grid; place-items: center; }
-.bib-voicenav button:hover { border-color: var(--chalk); }
+.bib-voicelist { display: flex; flex-direction: column; }
+.bib-voicerow { display: grid; grid-template-columns: 44px 1fr; gap: 4px 14px; margin: 0; padding: 22px 0; border-bottom: 1px solid rgba(235,235,235,0.07); align-items: start; }
+.bib-voicerow:last-child { border-bottom: none; padding-bottom: 0; }
+.bib-voicerow:first-of-type { padding-top: 0; }
+.bib-voicerow .bib-idx { padding-top: 8px; }
+.bib-voicequote { font-size: clamp(22px, 2.6vw, 34px); line-height: 1.25; margin: 0; color: var(--chalk); grid-column: 2; }
+.bib-voicerow figcaption { grid-column: 2; margin-top: 10px; }
 .bib-facts { display: flex; flex-wrap: wrap; gap: 10px; }
 .bib-pill { border: 1px solid var(--border-hairline); border-radius: 999px; padding: 9px 18px; font-family: var(--font-body); font-size: 12.5px; color: var(--chalk-dim); }
 @media (max-width: 900px) {
