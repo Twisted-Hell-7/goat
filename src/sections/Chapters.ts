@@ -70,53 +70,7 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
   const pages = chapters.map((_, i) => make(i));
   pages.forEach((p) => stage.append(p));
 
-  // ── edge arrows ───────────────────────────────────────────────
-  const mkArrow = (side: 'left' | 'right') => {
-    const b = document.createElement('button');
-    b.className = `ch-arrow ch-arrow--${side}`;
-    b.setAttribute('aria-label', side === 'left' ? 'Previous chapter' : 'Next chapter');
-    b.dataset.cursor = 'hover';
-    const styles: Record<string, string> = {
-      position: 'absolute',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      width: '56px',
-      height: '56px',
-      borderRadius: '50%',
-      border: '1px solid var(--border-hairline)',
-      background: 'rgba(3,3,3,0.4)',
-      backdropFilter: 'blur(4px)',
-      color: 'var(--chalk)',
-      fontFamily: 'var(--font-display)',
-      fontSize: '20px',
-      display: 'grid',
-      placeItems: 'center',
-      zIndex: '20',
-      transition: 'background 300ms ease, border-color 300ms ease, transform 300ms ease',
-      left: side === 'left' ? '24px' : 'auto',
-      right: side === 'right' ? '24px' : 'auto',
-    };
-    Object.assign(b.style, styles);
-    b.textContent = side === 'left' ? '←' : '→';
-    b.addEventListener('mouseenter', () => {
-      b.style.background = 'var(--chalk)';
-      b.style.color = 'var(--void)';
-      b.style.borderColor = 'var(--chalk)';
-    });
-    b.addEventListener('mouseleave', () => {
-      b.style.background = 'rgba(3,3,3,0.4)';
-      b.style.color = 'var(--chalk)';
-      b.style.borderColor = 'var(--border-hairline)';
-    });
-    b.addEventListener('click', () => {
-      manualOverride = true;
-      go(current + (side === 'right' ? 1 : -1));
-    });
-    return b;
-  };
-  const arrowL = mkArrow('left');
-  const arrowR = mkArrow('right');
-  stage.append(arrowL, arrowR);
+  // (edge arrows removed — auto-rotate only)
 
   // ── chapter dots + progress bar ───────────────────────────────
   const dots = document.createElement('div');
@@ -144,8 +98,7 @@ zIndex: '10',
       padding: '0',
     });
     b.addEventListener('click', () => {
-      manualOverride = true;
-      go(i);
+      // dots are read-only indicators — auto-rotate is in charge
     });
     dots.append(b);
     dotEls.push(b);
@@ -176,7 +129,6 @@ zIndex: '10',
 
   // ── state + animation ─────────────────────────────────────────
   let current = 0;
-  let manualOverride = false;
   let timer: number | null = null;
   let progressRAF: number | null = null;
   let progressStart = 0;
@@ -193,7 +145,7 @@ zIndex: '10',
       const elapsed = performance.now() - progressStart;
       const pct = Math.min(100, (elapsed / ROTATE_MS) * 100);
       progressBar.style.width = pct + '%';
-      if (elapsed < ROTATE_MS && !paused && !manualOverride) {
+      if (elapsed < ROTATE_MS && !paused) {
         progressRAF = requestAnimationFrame(tick);
       }
     };
@@ -256,7 +208,7 @@ zIndex: '10',
   const go = (nextRaw: number) => {
     const next = ((nextRaw % chapters.length) + chapters.length) % chapters.length;
     if (next === current) {
-      if (!manualOverride) startTimer();
+      startTimer();
       return;
     }
     if (timer != null) {
@@ -284,7 +236,7 @@ zIndex: '10',
       );
       current = next;
       updateDots();
-      if (!manualOverride) startTimer();
+      startTimer();
       return;
     }
 
@@ -309,7 +261,7 @@ zIndex: '10',
         gsap.set(to, { zIndex: dir > 0 ? 4 : 2 });
         current = next;
         updateDots();
-        if (!manualOverride) startTimer();
+        startTimer();
       },
     });
 
@@ -350,20 +302,9 @@ zIndex: '10',
   };
 
   // ── controls ──────────────────────────────────────────────────
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowRight') {
-      manualOverride = true;
-      stopTimer();
-      go(current + 1);
-    } else if (e.key === 'ArrowLeft') {
-      manualOverride = true;
-      stopTimer();
-      go(current - 1);
-    }
-  };
-  window.addEventListener('keydown', onKey);
+  // Auto-rotate only — no manual overrides.
 
-  // pause on hover, resume on leave — but resume timer only if not manually overridden
+  // pause on hover, resume on leave
   let paused = false;
   stage.addEventListener('mouseenter', () => {
     paused = true;
@@ -379,7 +320,7 @@ zIndex: '10',
   stage.addEventListener('mouseleave', () => {
     if (paused) {
       paused = false;
-      if (!manualOverride) startTimer();
+      startTimer();
     }
   });
 
@@ -390,7 +331,7 @@ zIndex: '10',
         window.clearTimeout(timer);
         timer = null;
       }
-    } else if (!paused && !manualOverride) {
+    } else if (!paused) {
       startTimer();
     }
   });
