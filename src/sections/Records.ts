@@ -1,6 +1,19 @@
 import { gsap, registerGSAP } from '../lib/gsap';
 import { masterTable, clubTable, argentinaTable, trophyGroups, awards, guinness, goalsByYear, singleNumbers } from '../lib/bible';
 
+function splitTrophy(item: string): { name: string; years: string } {
+  const sep = item.indexOf(' — ');
+  if (sep === -1) return { name: item, years: '' };
+  return { name: item.slice(0, sep), years: item.slice(sep + 3) };
+}
+
+function trophyRows(items: string[]) {
+  return items.map((raw) => {
+    const { name, years } = splitTrophy(raw);
+    return `<div class="bib-trow"><span class="bib-tname">${name}</span><span class="bib-tyears">${years}</span></div>`;
+  }).join('');
+}
+
 function blockTitle(kicker: string, title: string, sub?: string) {
   return `
     <div class="bib-head">
@@ -43,7 +56,7 @@ export function mountRecords(ctx: { root: HTMLElement; reduced: boolean }) {
         </div>
         <div class="bib-card bib-reveal">
           <span class="t-meta">By club</span>
-          ${clubTable.map((r) => `<div class="bib-row bib-row--4"><span><strong>${r.club}</strong><br/><span class="bib-dim">${r.years}</span></span><span class="tabular">${r.apps}</span><span class="tabular">${r.goals}</span><span class="tabular bib-dim">${r.assists}</span></div>`).join('')}
+          ${clubTable.map((r) => `<div class="bib-row bib-row--4"><span class="bib-clubmain"><span class="bib-club">${r.club}</span><span class="bib-dim">${r.years}</span></span><span class="tabular">${r.apps}</span><span class="tabular">${r.goals}</span><span class="tabular bib-dim">${r.assists}</span></div>`).join('')}
           <div class="bib-legend"><span>Apps</span><span>Goals</span><span>Assists</span></div>
         </div>
       </div>
@@ -56,15 +69,15 @@ export function mountRecords(ctx: { root: HTMLElement; reduced: boolean }) {
       <div class="bib-grid bib-grid--2">
         <div class="bib-card bib-reveal">
           <span class="t-meta">Trophies — 48 majors</span>
-          ${trophyGroups.map((g) => `<div class="bib-group"><span class="bib-team">${g.team}</span>${g.items.map((i) => `<p class="bib-item">${i}</p>`).join('')}</div>`).join('')}
+          ${trophyGroups.map((g) => `<div class="bib-group"><span class="bib-team">${g.team}</span><div class="bib-tlist">${trophyRows(g.items)}</div></div>`).join('')}
         </div>
         <div class="bib-card bib-reveal">
           <span class="t-meta">Individual awards</span>
-          ${awards.map((a, k) => `<div class="bib-row"><span><strong>${a.name}</strong><br/><span class="bib-dim">${a.detail}</span></span><span class="bib-idx">${String(k + 1).padStart(2, '0')}</span></div>`).join('')}
+          ${awards.map((a, k) => `<div class="bib-award"><span class="bib-idx">${String(k + 1).padStart(2, '0')}</span><span class="bib-awardmain"><span class="bib-awardname">${a.name}</span><span class="bib-dim">${a.detail}</span></span></div>`).join('')}
         </div>
       </div>
       <div class="bib-grid bib-grid--3">
-        ${guinness.map((g) => `<div class="bib-card bib-reveal"><span class="t-meta">Guinness — ${g.title}</span>${g.items.map((i) => `<p class="bib-item">— ${i}</p>`).join('')}</div>`).join('')}
+        ${guinness.map((g) => `<div class="bib-card bib-reveal"><span class="t-meta">Guinness — ${g.title}</span><ul class="bib-list">${g.items.map((i) => `<li class="bib-listitem">${i}</li>`).join('')}</ul></div>`).join('')}
       </div>
       <div class="bib-card bib-reveal">
         <span class="t-meta">Goals by year — club + country</span>

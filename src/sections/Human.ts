@@ -31,8 +31,8 @@ export function mountHuman(ctx: { root: HTMLElement; reduced: boolean }) {
         </div>
         <div class="bib-card bib-reveal">
           <span class="t-meta">Leo Messi Foundation — est. 2007</span>
-          ${foundation.map((f) => `<p class="bib-item">— ${f}</p>`).join('')}
-          <span class="t-meta" style="margin-top:24px;display:block;">In his words</span>
+          <ul class="bib-list">${foundation.map((f) => `<li class="bib-listitem">${f}</li>`).join('')}</ul>
+          <span class="t-meta" style="margin-top:28px;display:block;">In his words</span>
           ${messiQuotes.map((q) => `<p class="bib-quote">“${q}”</p>`).join('')}
         </div>
       </div>
