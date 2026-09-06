@@ -17,6 +17,7 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
 
   // ── stage ──────────────────────────────────────────────────────
   const stage = document.createElement('div');
+  stage.className = 'chapter-stage';
   Object.assign(stage.style, {
     position: 'relative',
     width: '100%',
@@ -28,6 +29,53 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
   });
   section.append(stage);
 
+  // ── responsive layout (desktop: 40/60 book · mobile: image top, content below) ──
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    .chapter-page { display: grid; grid-template-columns: 40% 60%; }
+    .chapter-page .ch-left {
+      padding: clamp(32px, 6vh, 80px) clamp(20px, 4vw, 60px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      background: linear-gradient(135deg, var(--void) 0%, var(--obsidian) 100%);
+      position: relative;
+      z-index: 2;
+      min-height: 0;
+    }
+    .chapter-page .ch-era {
+      font-size: clamp(48px, 7vw, 96px);
+      margin: 0;
+      color: var(--chalk);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .chapter-page .ch-quote {
+      margin: 14px 0 0;
+      font-size: clamp(18px, 2vw, 26px);
+      line-height: 1.3;
+      color: var(--chalk);
+      max-width: 40ch;
+      font-style: italic;
+    }
+    @media (max-width: 720px) {
+      .chapter-stage { width: calc(100% - 24px) !important; height: min(86vh, 660px) !important; }
+      .chapter-page { grid-template-columns: 1fr; grid-template-rows: minmax(0, 32vh) minmax(0, 1fr); }
+      .chapter-page .ch-right { order: -1; }
+      .chapter-page .ch-left {
+        padding: 22px 20px 28px;
+        gap: 10px;
+        justify-content: flex-start;
+        overflow-y: auto;
+      }
+      .chapter-page .ch-era { font-size: clamp(40px, 13vw, 58px); }
+      .chapter-page .ch-quote { font-size: 15px; margin-top: 8px; }
+      .chapter-page .ch-stat { margin-top: 12px !important; flex-wrap: wrap; }
+    }
+  `;
+  section.append(styleEl);
+
   // ── page factory ───────────────────────────────────────────────
   const make = (i: number) => {
     const c = chapters[i];
@@ -37,8 +85,6 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     Object.assign(page.style, {
       position: 'absolute',
       inset: '0',
-      display: 'grid',
-      gridTemplateColumns: '40% 60%',
       transformStyle: 'preserve-3d',
       backfaceVisibility: 'hidden',
       opacity: '0',
@@ -46,11 +92,11 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     });
 
     page.innerHTML = `
-      <div class="ch-left" style="padding:clamp(32px, 6vh, 80px) clamp(20px, 4vw, 60px);display:flex;flex-direction:column;justify-content:center;gap:18px;background:linear-gradient(135deg, var(--void) 0%, var(--obsidian) 100%);position:relative;z-index:2;">
+      <div class="ch-left" style="background:linear-gradient(135deg, var(--void) 0%, var(--obsidian) 100%);position:relative;z-index:2;">
         <span class="t-meta ch-meta">${c.index}</span>
-        <h2 class="t-display ch-era" style="font-size:clamp(48px, 7vw, 96px);margin:0;color:var(--chalk);font-weight:700;letter-spacing:-0.03em;">${c.era}</h2>
+        <h2 class="t-display ch-era">${c.era}</h2>
         <span class="ch-years" style="font-family:var(--font-body);font-size:13px;color:${c.accent};letter-spacing:0.08em;">${c.years}</span>
-        <blockquote class="t-editorial ch-quote" style="margin:14px 0 0;font-size:clamp(18px, 2vw, 26px);line-height:1.3;color:var(--chalk);max-width:40ch;font-style:italic;">&ldquo;${c.quote}&rdquo;</blockquote>
+        <blockquote class="t-editorial ch-quote">&ldquo;${c.quote}&rdquo;</blockquote>
         <div class="ch-stat" style="margin-top:20px;padding-top:14px;border-top:1px solid var(--gold-electric);display:inline-flex;align-items:center;gap:10px;width:fit-content;">
           <span style="font-family:var(--font-body);font-size:10px;letter-spacing:0.2em;color:var(--gold-electric);text-transform:uppercase;">Key Stat</span>
           <span style="font-family:var(--font-body);font-size:13px;color:var(--chalk);">${c.stat}</span>
@@ -302,7 +348,28 @@ zIndex: '10',
   };
 
   // ── controls ──────────────────────────────────────────────────
-  // Auto-rotate only — no manual overrides.
+  // Auto-rotate only — no manual overrides (swipe on touch).
+
+  // swipe to flip on touch devices
+  let touchX: number | null = null;
+  stage.addEventListener(
+    'touchstart',
+    (e) => {
+      touchX = e.touches[0].clientX;
+    },
+    { passive: true }
+  );
+  stage.addEventListener(
+    'touchend',
+    (e) => {
+      if (touchX == null) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(dx) < 42) return;
+      go(current + (dx < 0 ? 1 : -1));
+    },
+    { passive: true }
+  );
 
   // pause on hover, resume on leave
   let paused = false;
