@@ -9,6 +9,24 @@ const chapterFor = (i: number): string => {
   return 'Anthem · Always';
 };
 
+type Size = 'hero' | 'large' | 'medium' | 'small';
+type Offset = 'up' | 'center' | 'down';
+
+// Curated wall: sizes + vertical offsets arranged per frame.
+const ARRANGEMENT: Array<{ size: Size; offset: Offset }> = [
+  { size: 'small', offset: 'down' }, // 0 portrait
+  { size: 'large', offset: 'up' }, // 1 dribbling
+  { size: 'medium', offset: 'center' }, // 2 free-kick
+  { size: 'small', offset: 'up' }, // 3 celebration
+  { size: 'medium', offset: 'down' }, // 4 poster
+  { size: 'hero', offset: 'center' }, // 5 WC kiss — headline
+  { size: 'small', offset: 'up' }, // 6 pointing
+  { size: 'large', offset: 'down' }, // 7 finally
+  { size: 'medium', offset: 'up' }, // 8 miami back
+  { size: 'small', offset: 'center' }, // 9 training
+  { size: 'medium', offset: 'down' }, // 10 boots
+];
+
 export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
   const section = ctx.root.querySelector<HTMLElement>('#frames')!;
   const reduced = ctx.reduced;
@@ -18,218 +36,219 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
     padding: '0',
     background: 'var(--void)',
     position: 'relative',
+    overflow: 'hidden',
   } as CSSStyleDeclaration);
-  if (reduced) section.setAttribute('data-mode', 'plain');
+  if (reduced) section.setAttribute('data-mode', 'scroll');
 
   const total = String(frames.length).padStart(2, '0');
 
   section.innerHTML = `
-    <header class="stack-head">
-      <span class="stack-tag label-tag">CHAPTER 04 · ARCHIVE</span>
-      <h2 class="t-display stack-title">Frames<span class="stack-title-mark">.</span></h2>
-      <p class="stack-lede">Eleven stills. Two decades. Scroll — each frame settles beneath the next.</p>
-      <div class="stack-meta">
-        <span class="tabular">${total} / ${total}</span>
-        <span class="stack-meta-sep">·</span>
-        <span>Archive 1987 — ${new Date().getFullYear()}</span>
-      </div>
-    </header>
+    <div class="wall-pin">
+      <header class="wall-head">
+        <div class="wall-head-left">
+          <span class="wall-tag label-tag">CHAPTER 04 · ARCHIVE</span>
+          <h2 class="t-display wall-title">Frames<span class="wall-title-mark">.</span></h2>
+        </div>
+        <div class="wall-head-right">
+          <span class="wall-count tabular"><span class="wall-count-cur">01</span> / ${total}</span>
+          <span class="wall-chapter">Rosario · 1987</span>
+        </div>
+      </header>
 
-    <div class="stack-wrap" role="list" aria-label="Messi frames archive, ${frames.length} photographs">
-      ${frames
-        .map((f, i) => {
-          const num = String(i + 1).padStart(2, '0');
-          return `
-            <article class="stack-card" role="listitem" aria-label="Frame ${num}: ${f.caption}">
-              <button class="stack-hit" data-i="${i}" data-cursor="view" aria-label="Open frame ${num}: ${f.caption}">
-                <span class="stack-fig">
-                  <img src="${f.src}" alt="${f.alt}" ${i > 1 ? 'loading="lazy"' : ''} decoding="async" />
-                  <span class="stack-veil" aria-hidden="true"></span>
+      <div class="wall-track" role="list" aria-label="Messi frames archive, ${frames.length} photographs">
+        ${frames
+          .map((f, i) => {
+            const num = String(i + 1).padStart(2, '0');
+            const a = ARRANGEMENT[i];
+            return `
+              <button class="wall-panel wall-panel--${a.size} wall-off--${a.offset}" data-i="${i}" data-cursor="view" role="listitem" aria-label="Open frame ${num}: ${f.caption}">
+                <span class="wall-fig">
+                  <img src="${f.src}" alt="${f.alt}" ${i > 2 ? 'loading="lazy"' : ''} decoding="async" />
+                  <span class="wall-fig-veil" aria-hidden="true"></span>
+                  <span class="wall-num tabular" aria-hidden="true">${num}</span>
                 </span>
-                <span class="stack-top">
-                  <span class="stack-top-left">
-                    <span class="stack-idx tabular">${num}</span>
-                    <span class="stack-ch">${chapterFor(i)}</span>
+                <span class="wall-cap">
+                  <span class="wall-cap-row">
+                    <span class="wall-idx tabular">${num}</span>
+                    <span class="wall-ch">${chapterFor(i)}</span>
                   </span>
-                  <span class="stack-count tabular">${num} / ${total}</span>
-                </span>
-                <span class="stack-cap">
-                  <span class="stack-cap-text">${f.caption}</span>
-                  <span class="stack-view">View <span aria-hidden="true">↗</span></span>
+                  <span class="wall-cap-text">${f.caption}</span>
                 </span>
               </button>
-            </article>
-          `;
-        })
-        .join('')}
+            `;
+          })
+          .join('')}
+        <div class="wall-end" aria-hidden="true">
+          <span class="t-display wall-end-word">Fin<span class="wall-title-mark">.</span></span>
+          <span class="wall-end-sub">1987 — still playing</span>
+        </div>
+      </div>
+
+      <div class="wall-rail" aria-hidden="true">
+        <div class="wall-rail-fill"></div>
+      </div>
+      <span class="wall-hint">Scroll to travel →</span>
     </div>
 
-    <footer class="stack-foot" aria-hidden="true">
-      <span class="t-display stack-foot-word">Fin<span class="stack-title-mark">.</span></span>
-      <span class="stack-foot-sub">1987 — still playing</span>
-    </footer>
-
     <style>
-      .stack-head {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: clamp(96px, 14vh, 180px) clamp(20px, 4vw, 56px) clamp(48px, 8vh, 110px);
-        display: grid;
-        gap: 24px;
+      .wall-pin {
+        position: relative;
+        height: 100vh;
+        min-height: 640px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(80% 60% at 50% 110%, rgba(168, 197, 216, 0.07), transparent 60%),
+          var(--void);
       }
-      .stack-tag { color: var(--chalk-dim); }
-      .stack-title {
-        font-size: clamp(64px, 12vw, 200px);
+      .wall-head {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 5;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        padding: clamp(20px, 4vh, 44px) clamp(20px, 6vw, 88px) 0;
+        pointer-events: none;
+      }
+      .wall-head-left { display: grid; gap: 10px; }
+      .wall-tag { color: var(--chalk-dim); }
+      .wall-title {
         margin: 0;
         font-weight: 700;
         letter-spacing: -0.04em;
         line-height: 0.85;
+        font-size: clamp(52px, 8vw, 132px);
+        color: var(--chalk);
+        text-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+      }
+      .wall-title-mark { color: var(--gold-electric); }
+      .wall-head-right {
+        display: grid;
+        gap: 8px;
+        justify-items: end;
+        padding-top: 8px;
+      }
+      .wall-count {
+        font-family: var(--font-mono);
+        font-size: clamp(14px, 1.4vw, 18px);
+        letter-spacing: 0.18em;
         color: var(--chalk);
       }
-      .stack-title-mark { color: var(--gold-electric); }
-      .stack-lede {
-        max-width: 56ch;
-        font-family: var(--font-display);
-        font-weight: 300;
-        font-size: clamp(15px, 1.4vw, 19px);
-        line-height: 1.45;
-        color: var(--chalk);
-        opacity: 0.78;
-        margin: 0;
-      }
-      .stack-meta {
+      .wall-count-cur { color: var(--gold-electric); }
+      .wall-chapter {
         font-family: var(--font-mono);
         font-size: 11px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--chalk-dim);
-        display: flex;
-        gap: 14px;
-        align-items: center;
-        border-top: 1px solid var(--border-hairline);
-        padding-top: 18px;
-        max-width: 360px;
       }
-      .stack-meta-sep { opacity: 0.5; }
-
-      .stack-wrap { position: relative; }
-      .stack-card {
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        min-height: 560px;
-        overflow: hidden;
-        background: var(--void);
-        box-shadow: 0 -32px 70px rgba(0, 0, 0, 0.55);
+      .wall-track {
+        display: flex;
+        align-items: center;
+        gap: clamp(32px, 5vw, 88px);
+        padding-inline: clamp(20px, 6vw, 88px);
+        padding-top: 9vh;
         will-change: transform;
       }
-      .stack-hit {
-        position: relative;
-        display: block;
-        width: 100%;
-        height: 100%;
+      .wall-panel {
+        flex: 0 0 auto;
         padding: 0;
-        cursor: pointer;
         text-align: left;
+        cursor: pointer;
         background: none;
       }
-      .stack-hit:focus-visible { outline: none; }
-      .stack-hit:focus-visible .stack-fig { outline: 2px solid var(--gold-electric); outline-offset: -2px; }
-      .stack-fig { position: absolute; inset: 0; display: block; overflow: hidden; }
-      .stack-fig img {
+      .wall-panel:focus-visible { outline: none; }
+      .wall-panel:focus-visible .wall-fig { outline: 2px solid var(--gold-electric); outline-offset: 6px; }
+      .wall-panel--hero { width: clamp(340px, 58vw, 860px); }
+      .wall-panel--large { width: clamp(280px, 40vw, 600px); }
+      .wall-panel--medium { width: clamp(240px, 31vw, 460px); }
+      .wall-panel--small { width: clamp(200px, 24vw, 340px); }
+      .wall-off--up { margin-bottom: 13vh; }
+      .wall-off--down { margin-top: 13vh; }
+      .wall-fig {
+        position: relative;
+        display: block;
+        overflow: hidden;
+        background: var(--obsidian);
+      }
+      .wall-panel--hero .wall-fig { height: min(56vh, 580px); min-height: 340px; }
+      .wall-panel--large .wall-fig { height: min(50vh, 520px); min-height: 300px; }
+      .wall-panel--medium .wall-fig { height: min(43vh, 440px); min-height: 260px; }
+      .wall-panel--small .wall-fig { height: min(36vh, 360px); min-height: 220px; }
+      .wall-fig img {
         width: 100%;
-        height: 112%;
+        height: 100%;
         object-fit: cover;
         display: block;
-        filter: grayscale(0.12) contrast(1.05) brightness(0.92);
+        transform: scale(1.18);
+        filter: grayscale(0.12) contrast(1.05) brightness(0.94);
         transition: filter 700ms var(--ease-expo);
         will-change: transform;
       }
-      .stack-hit:hover .stack-fig img,
-      .stack-hit:focus-visible .stack-fig img {
+      .wall-panel:hover .wall-fig img,
+      .wall-panel:focus-visible .wall-fig img {
         filter: grayscale(0) contrast(1.06) brightness(1);
       }
-      .stack-veil {
+      .wall-fig-veil {
         position: absolute;
         inset: 0;
         pointer-events: none;
         background:
-          linear-gradient(to top, rgba(3,3,3,0.88) 0%, rgba(3,3,3,0.4) 28%, transparent 55%),
-          linear-gradient(to bottom, rgba(3,3,3,0.45) 0%, transparent 26%);
+          linear-gradient(to top, rgba(3,3,3,0.4) 0%, transparent 30%),
+          linear-gradient(to bottom, rgba(3,3,3,0.22) 0%, transparent 22%);
       }
-      .stack-top {
+      .wall-num {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
+        right: 12px;
+        bottom: 4px;
+        font-family: var(--font-display);
+        font-weight: 700;
+        line-height: 1;
+        color: transparent;
+        -webkit-text-stroke: 1px rgba(235, 235, 235, 0.4);
+        pointer-events: none;
+      }
+      .wall-panel--hero .wall-num { font-size: clamp(56px, 6vw, 96px); }
+      .wall-panel--large .wall-num { font-size: clamp(48px, 5vw, 80px); }
+      .wall-panel--medium .wall-num { font-size: clamp(40px, 4vw, 64px); }
+      .wall-panel--small .wall-num { font-size: clamp(32px, 3.4vw, 52px); }
+      .wall-cap { display: grid; gap: 8px; margin-top: 16px; }
+      .wall-cap-row {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        gap: 16px;
-        padding: clamp(20px, 4vh, 40px) clamp(20px, 4vw, 56px);
-      }
-      .stack-top-left { display: flex; align-items: center; gap: 16px; }
-      .stack-idx {
+        gap: 12px;
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 10px;
         letter-spacing: 0.2em;
-        color: var(--gold-electric);
-      }
-      .stack-ch {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: var(--chalk);
-        opacity: 0.75;
       }
-      .stack-count {
-        font-family: var(--font-mono);
-        font-size: 12px;
-        letter-spacing: 0.2em;
-        color: var(--chalk);
-        opacity: 0.75;
-      }
-      .stack-cap {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        gap: 24px;
-        padding: clamp(24px, 5vh, 56px) clamp(20px, 4vw, 56px);
-      }
-      .stack-cap-text {
+      .wall-idx { color: var(--gold-electric); }
+      .wall-ch { color: var(--chalk-dim); }
+      .wall-cap-text {
         font-family: var(--font-display);
         font-weight: 300;
-        font-size: clamp(26px, 4.4vw, 58px);
-        line-height: 1.08;
-        letter-spacing: -0.02em;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
         color: var(--chalk);
-        max-width: 22ch;
-        text-shadow: 0 12px 50px rgba(0, 0, 0, 0.6);
       }
-      .stack-view {
+      .wall-panel--hero .wall-cap-text { font-size: clamp(17px, 1.6vw, 23px); max-width: 40ch; }
+      .wall-panel--large .wall-cap-text { font-size: clamp(15px, 1.3vw, 19px); max-width: 34ch; }
+      .wall-panel--medium .wall-cap-text,
+      .wall-panel--small .wall-cap-text { font-size: clamp(13px, 1.1vw, 16px); max-width: 30ch; }
+      .wall-end {
         flex: 0 0 auto;
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--chalk);
-        opacity: 0.7;
-        padding-bottom: 10px;
-      }
-      .stack-foot {
         display: grid;
         gap: 12px;
-        justify-items: center;
-        text-align: center;
-        padding: clamp(96px, 16vh, 200px) 20px;
-        background: var(--void);
+        justify-items: start;
+        align-self: center;
+        padding-right: clamp(20px, 6vw, 88px);
       }
-      .stack-foot-word {
+      .wall-end-word {
         margin: 0;
         font-weight: 700;
         letter-spacing: -0.04em;
@@ -237,26 +256,73 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
         font-size: clamp(64px, 10vw, 170px);
         color: var(--chalk);
       }
-      .stack-foot-sub {
+      .wall-end-sub {
         font-family: var(--font-mono);
         font-size: 11px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
         color: var(--chalk-dim);
       }
-
-      /* Reduced-motion fallback: plain vertical list, no sticky */
-      #frames[data-mode="plain"] .stack-card {
-        position: static;
-        height: 72vh;
-        min-height: 420px;
-        margin: 0 clamp(20px, 4vw, 56px) 24px;
+      .wall-rail {
+        position: absolute;
+        left: clamp(20px, 6vw, 88px);
+        right: clamp(20px, 6vw, 88px);
+        bottom: clamp(24px, 5vh, 48px);
+        height: 1px;
+        background: var(--border-hairline);
+        z-index: 5;
+      }
+      .wall-rail-fill {
+        height: 100%;
+        background: var(--gold-electric);
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+      .wall-hint {
+        position: absolute;
+        bottom: clamp(40px, 8vh, 72px);
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--chalk-dim);
+        opacity: 0.7;
+        z-index: 5;
+        pointer-events: none;
       }
 
+      /* Reduced-motion fallback: native horizontal scroll, no pin */
+      #frames[data-mode="scroll"] .wall-pin {
+        height: auto;
+        min-height: 0;
+        display: block;
+        overflow: visible;
+        padding: clamp(80px, 10vh, 140px) 0 60px;
+      }
+      #frames[data-mode="scroll"] .wall-head { position: static; padding-bottom: 32px; pointer-events: auto; }
+      #frames[data-mode="scroll"] .wall-track {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 24px;
+        padding-top: 0;
+        will-change: auto;
+      }
+      #frames[data-mode="scroll"] .wall-panel { scroll-snap-align: center; }
+      #frames[data-mode="scroll"] .wall-off--up,
+      #frames[data-mode="scroll"] .wall-off--down { margin: 0; }
+      #frames[data-mode="scroll"] .wall-rail,
+      #frames[data-mode="scroll"] .wall-hint { display: none; }
+
       @media (max-width: 640px) {
-        .stack-card { min-height: 480px; }
-        .stack-cap { flex-direction: column; align-items: flex-start; gap: 14px; }
-        .stack-view { padding-bottom: 0; }
+        .wall-panel--hero { width: 76vw; }
+        .wall-panel--large { width: 66vw; }
+        .wall-panel--medium { width: 58vw; }
+        .wall-panel--small { width: 52vw; }
+        .wall-off--up { margin-bottom: 6vh; }
+        .wall-off--down { margin-top: 6vh; }
+        .wall-head-right { display: none; }
       }
 
       /* ── Lightbox (unchanged) ───────────────────────────── */
@@ -375,9 +441,13 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
     </style>
   `;
 
-  const cards = [...section.querySelectorAll<HTMLElement>('.stack-card')];
-  cards.forEach((card) => {
-    const btn = card.querySelector<HTMLButtonElement>('.stack-hit')!;
+  const track = section.querySelector<HTMLElement>('.wall-track')!;
+  const countCur = section.querySelector<HTMLElement>('.wall-count-cur')!;
+  const chapterEl = section.querySelector<HTMLElement>('.wall-chapter')!;
+  const railFill = section.querySelector<HTMLElement>('.wall-rail-fill')!;
+  const hint = section.querySelector<HTMLElement>('.wall-hint')!;
+
+  track.querySelectorAll<HTMLButtonElement>('.wall-panel').forEach((btn) => {
     btn.addEventListener('click', () => openLightbox(Number(btn.dataset.i)));
   });
 
@@ -424,64 +494,72 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
 
   registerGSAP();
 
-  // Header entrance
+  const travel = () => Math.max(0, track.scrollWidth - window.innerWidth);
+
+  // Head entrance
   gsap.fromTo(
-    section.querySelector('.stack-head'),
-    { opacity: 0, y: 32 },
+    section.querySelector('.wall-head'),
+    { opacity: 0, y: -18 },
     {
       opacity: 1,
       y: 0,
-      duration: 1,
+      duration: 0.9,
       ease: 'expo.out',
-      scrollTrigger: { trigger: section.querySelector('.stack-head'), start: 'top 80%' },
+      scrollTrigger: { trigger: section, start: 'top 80%' },
     }
   );
 
-  // Deck effect: each covered card settles back — scales down + dims.
-  cards.forEach((card, i) => {
-    if (i === cards.length - 1) return;
-    const next = cards[i + 1];
-    gsap.to(card, {
-      scale: 0.92,
-      filter: 'brightness(0.45)',
-      transformOrigin: 'center top',
-      ease: 'none',
-      scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top+=120', scrub: true },
-    });
-    const cap = card.querySelector('.stack-cap');
-    if (cap) {
-      gsap.to(cap, {
-        opacity: 0,
-        y: -30,
-        ease: 'none',
-        scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top+=240', scrub: true },
-      });
-    }
+  // The wall: vertical scroll becomes horizontal travel (pinned).
+  const horiz = gsap.to(track, {
+    x: () => -travel(),
+    ease: 'none',
+    scrollTrigger: {
+      trigger: section,
+      start: 'top top',
+      end: () => '+=' + travel(),
+      pin: true,
+      scrub: 1,
+      invalidateOnRefresh: true,
+      anticipatePin: 1,
+      onUpdate: (self) => {
+        const idx = Math.min(frames.length - 1, Math.round(self.progress * (frames.length - 1)));
+        countCur.textContent = String(idx + 1).padStart(2, '0');
+        chapterEl.textContent = chapterFor(idx);
+        railFill.style.transform = `scaleX(${self.progress})`;
+        hint.style.opacity = String(0.7 * (1 - self.progress * 2));
+      },
+    },
   });
 
-  // Gentle parallax inside every frame.
-  cards.forEach((card) => {
-    const img = card.querySelector('img');
+  // Per-frame parallax inside the travelling wall.
+  track.querySelectorAll<HTMLElement>('.wall-panel').forEach((panel) => {
+    const img = panel.querySelector('img');
     if (!img) return;
     gsap.fromTo(
       img,
-      { yPercent: -6 },
+      { xPercent: -5 },
       {
-        yPercent: 6,
+        xPercent: 5,
         ease: 'none',
-        scrollTrigger: { trigger: card, start: 'top bottom', end: 'bottom top', scrub: true },
+        scrollTrigger: {
+          trigger: panel,
+          containerAnimation: horiz,
+          start: 'left right',
+          end: 'right left',
+          scrub: true,
+        },
       }
     );
   });
 
-  // Re-measure once photography settles.
+  // Re-measure once photography settles (cached vs network).
   let refreshed = false;
   const refreshOnce = () => {
     if (refreshed) return;
     refreshed = true;
     ScrollTrigger.refresh();
   };
-  const imgs = section.querySelectorAll('img');
+  const imgs = track.querySelectorAll('img');
   let loaded = 0;
   imgs.forEach((img) => {
     if ((img as HTMLImageElement).complete) {
