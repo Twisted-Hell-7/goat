@@ -18,204 +18,218 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
     padding: '0',
     background: 'var(--void)',
     position: 'relative',
-    overflow: 'hidden',
   } as CSSStyleDeclaration);
-  if (reduced) section.setAttribute('data-mode', 'scroll');
+  if (reduced) section.setAttribute('data-mode', 'plain');
 
   const total = String(frames.length).padStart(2, '0');
 
   section.innerHTML = `
-    <div class="strip-pin">
-      <header class="strip-head">
-        <div class="strip-head-left">
-          <span class="strip-tag label-tag">CHAPTER 04 · ARCHIVE</span>
-          <h2 class="t-display strip-title">Frames<span class="strip-title-mark">.</span></h2>
-        </div>
-        <div class="strip-head-right">
-          <span class="strip-count tabular"><span class="strip-count-cur">01</span> / ${total}</span>
-          <span class="strip-chapter">Rosario · 1987</span>
-        </div>
-      </header>
+    <header class="stack-head">
+      <span class="stack-tag label-tag">CHAPTER 04 · ARCHIVE</span>
+      <h2 class="t-display stack-title">Frames<span class="stack-title-mark">.</span></h2>
+      <p class="stack-lede">Eleven stills. Two decades. Scroll — each frame settles beneath the next.</p>
+      <div class="stack-meta">
+        <span class="tabular">${total} / ${total}</span>
+        <span class="stack-meta-sep">·</span>
+        <span>Archive 1987 — ${new Date().getFullYear()}</span>
+      </div>
+    </header>
 
-      <div class="strip-track" role="list" aria-label="Messi frames archive, ${frames.length} photographs">
-        ${frames
-          .map((f, i) => {
-            const num = String(i + 1).padStart(2, '0');
-            return `
-              <button class="strip-panel" data-i="${i}" data-cursor="view" role="listitem" aria-label="Open frame ${num}: ${f.caption}">
-                <span class="strip-fig">
-                  <img src="${f.src}" alt="${f.alt}" ${i > 2 ? 'loading="lazy"' : ''} />
-                  <span class="strip-fig-veil" aria-hidden="true"></span>
-                  <span class="strip-num tabular" aria-hidden="true">${num}</span>
+    <div class="stack-wrap" role="list" aria-label="Messi frames archive, ${frames.length} photographs">
+      ${frames
+        .map((f, i) => {
+          const num = String(i + 1).padStart(2, '0');
+          return `
+            <article class="stack-card" role="listitem" aria-label="Frame ${num}: ${f.caption}">
+              <button class="stack-hit" data-i="${i}" data-cursor="view" aria-label="Open frame ${num}: ${f.caption}">
+                <span class="stack-fig">
+                  <img src="${f.src}" alt="${f.alt}" ${i > 1 ? 'loading="lazy"' : ''} decoding="async" />
+                  <span class="stack-veil" aria-hidden="true"></span>
                 </span>
-                <span class="strip-cap">
-                  <span class="strip-cap-row">
-                    <span class="strip-idx tabular">${num}</span>
-                    <span class="strip-ch">${chapterFor(i)}</span>
+                <span class="stack-top">
+                  <span class="stack-top-left">
+                    <span class="stack-idx tabular">${num}</span>
+                    <span class="stack-ch">${chapterFor(i)}</span>
                   </span>
-                  <span class="strip-cap-text">${f.caption}</span>
+                  <span class="stack-count tabular">${num} / ${total}</span>
+                </span>
+                <span class="stack-cap">
+                  <span class="stack-cap-text">${f.caption}</span>
+                  <span class="stack-view">View <span aria-hidden="true">↗</span></span>
                 </span>
               </button>
-            `;
-          })
-          .join('')}
-        <div class="strip-end" aria-hidden="true">
-          <span class="t-display strip-end-word">Fin<span class="strip-title-mark">.</span></span>
-          <span class="strip-end-sub">1987 — still playing</span>
-        </div>
-      </div>
-
-      <div class="strip-rail" aria-hidden="true">
-        <div class="strip-rail-fill"></div>
-      </div>
-      <span class="strip-hint">Scroll to travel →</span>
+            </article>
+          `;
+        })
+        .join('')}
     </div>
 
+    <footer class="stack-foot" aria-hidden="true">
+      <span class="t-display stack-foot-word">Fin<span class="stack-title-mark">.</span></span>
+      <span class="stack-foot-sub">1987 — still playing</span>
+    </footer>
+
     <style>
-      .strip-pin {
-        position: relative;
-        height: 100vh;
-        min-height: 640px;
-        display: flex;
-        align-items: center;
-        overflow: hidden;
-        background:
-          radial-gradient(80% 60% at 50% 110%, rgba(168, 197, 216, 0.07), transparent 60%),
-          var(--void);
-      }
-      .strip-head {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 5;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
+      .stack-head {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: clamp(96px, 14vh, 180px) clamp(20px, 4vw, 56px) clamp(48px, 8vh, 110px);
+        display: grid;
         gap: 24px;
-        padding: clamp(20px, 4vh, 44px) clamp(20px, 6vw, 88px) 0;
-        pointer-events: none;
       }
-      .strip-head-left { display: grid; gap: 10px; }
-      .strip-tag { color: var(--chalk-dim); }
-      .strip-title {
+      .stack-tag { color: var(--chalk-dim); }
+      .stack-title {
+        font-size: clamp(64px, 12vw, 200px);
         margin: 0;
         font-weight: 700;
         letter-spacing: -0.04em;
         line-height: 0.85;
-        font-size: clamp(52px, 8vw, 132px);
-        color: var(--chalk);
-        text-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
-      }
-      .strip-title-mark { color: var(--gold-electric); }
-      .strip-head-right {
-        display: grid;
-        gap: 8px;
-        justify-items: end;
-        padding-top: 8px;
-      }
-      .strip-count {
-        font-family: var(--font-mono);
-        font-size: clamp(14px, 1.4vw, 18px);
-        letter-spacing: 0.18em;
         color: var(--chalk);
       }
-      .strip-count-cur { color: var(--gold-electric); }
-      .strip-chapter {
+      .stack-title-mark { color: var(--gold-electric); }
+      .stack-lede {
+        max-width: 56ch;
+        font-family: var(--font-display);
+        font-weight: 300;
+        font-size: clamp(15px, 1.4vw, 19px);
+        line-height: 1.45;
+        color: var(--chalk);
+        opacity: 0.78;
+        margin: 0;
+      }
+      .stack-meta {
         font-family: var(--font-mono);
         font-size: 11px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--chalk-dim);
-      }
-      .strip-track {
         display: flex;
+        gap: 14px;
         align-items: center;
-        gap: clamp(28px, 4vw, 72px);
-        padding-inline: clamp(20px, 6vw, 88px);
+        border-top: 1px solid var(--border-hairline);
+        padding-top: 18px;
+        max-width: 360px;
+      }
+      .stack-meta-sep { opacity: 0.5; }
+
+      .stack-wrap { position: relative; }
+      .stack-card {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        min-height: 560px;
+        overflow: hidden;
+        background: var(--void);
+        box-shadow: 0 -32px 70px rgba(0, 0, 0, 0.55);
         will-change: transform;
       }
-      .strip-panel {
-        flex: 0 0 auto;
-        width: clamp(300px, 58vw, 820px);
-        padding: 0;
-        text-align: left;
-        cursor: pointer;
-        background: none;
-      }
-      .strip-panel:focus-visible { outline: none; }
-      .strip-panel:focus-visible .strip-fig { outline: 2px solid var(--gold-electric); outline-offset: 6px; }
-      .strip-fig {
+      .stack-hit {
         position: relative;
         display: block;
-        height: min(58vh, 600px);
-        min-height: 340px;
-        overflow: hidden;
-        background: var(--obsidian);
-      }
-      .strip-fig img {
         width: 100%;
         height: 100%;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        background: none;
+      }
+      .stack-hit:focus-visible { outline: none; }
+      .stack-hit:focus-visible .stack-fig { outline: 2px solid var(--gold-electric); outline-offset: -2px; }
+      .stack-fig { position: absolute; inset: 0; display: block; overflow: hidden; }
+      .stack-fig img {
+        width: 100%;
+        height: 112%;
         object-fit: cover;
         display: block;
-        transform: scale(1.18);
-        filter: grayscale(0.12) contrast(1.05) brightness(0.94);
+        filter: grayscale(0.12) contrast(1.05) brightness(0.92);
         transition: filter 700ms var(--ease-expo);
         will-change: transform;
       }
-      .strip-panel:hover .strip-fig img,
-      .strip-panel:focus-visible .strip-fig img {
+      .stack-hit:hover .stack-fig img,
+      .stack-hit:focus-visible .stack-fig img {
         filter: grayscale(0) contrast(1.06) brightness(1);
       }
-      .strip-fig-veil {
+      .stack-veil {
         position: absolute;
         inset: 0;
         pointer-events: none;
         background:
-          linear-gradient(to top, rgba(3,3,3,0.45) 0%, transparent 30%),
-          linear-gradient(to bottom, rgba(3,3,3,0.25) 0%, transparent 22%);
+          linear-gradient(to top, rgba(3,3,3,0.88) 0%, rgba(3,3,3,0.4) 28%, transparent 55%),
+          linear-gradient(to bottom, rgba(3,3,3,0.45) 0%, transparent 26%);
       }
-      .strip-num {
+      .stack-top {
         position: absolute;
-        right: 14px;
-        bottom: 8px;
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: clamp(56px, 6vw, 96px);
-        line-height: 1;
-        color: transparent;
-        -webkit-text-stroke: 1px rgba(235, 235, 235, 0.4);
-        pointer-events: none;
-      }
-      .strip-cap { display: grid; gap: 10px; margin-top: 18px; }
-      .strip-cap-row {
+        top: 0;
+        left: 0;
+        right: 0;
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 14px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
+        gap: 16px;
+        padding: clamp(20px, 4vh, 40px) clamp(20px, 4vw, 56px);
       }
-      .strip-idx { color: var(--gold-electric); }
-      .strip-ch { color: var(--chalk-dim); }
-      .strip-cap-text {
+      .stack-top-left { display: flex; align-items: center; gap: 16px; }
+      .stack-idx {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        color: var(--gold-electric);
+      }
+      .stack-ch {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--chalk);
+        opacity: 0.75;
+      }
+      .stack-count {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        color: var(--chalk);
+        opacity: 0.75;
+      }
+      .stack-cap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        padding: clamp(24px, 5vh, 56px) clamp(20px, 4vw, 56px);
+      }
+      .stack-cap-text {
         font-family: var(--font-display);
         font-weight: 300;
-        font-size: clamp(17px, 1.6vw, 23px);
-        line-height: 1.3;
-        letter-spacing: -0.01em;
+        font-size: clamp(26px, 4.4vw, 58px);
+        line-height: 1.08;
+        letter-spacing: -0.02em;
         color: var(--chalk);
-        max-width: 40ch;
+        max-width: 22ch;
+        text-shadow: 0 12px 50px rgba(0, 0, 0, 0.6);
       }
-      .strip-end {
+      .stack-view {
         flex: 0 0 auto;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--chalk);
+        opacity: 0.7;
+        padding-bottom: 10px;
+      }
+      .stack-foot {
         display: grid;
         gap: 12px;
-        justify-items: start;
-        padding-right: clamp(20px, 6vw, 88px);
+        justify-items: center;
+        text-align: center;
+        padding: clamp(96px, 16vh, 200px) 20px;
+        background: var(--void);
       }
-      .strip-end-word {
+      .stack-foot-word {
         margin: 0;
         font-weight: 700;
         letter-spacing: -0.04em;
@@ -223,66 +237,26 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
         font-size: clamp(64px, 10vw, 170px);
         color: var(--chalk);
       }
-      .strip-end-sub {
+      .stack-foot-sub {
         font-family: var(--font-mono);
         font-size: 11px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
         color: var(--chalk-dim);
       }
-      .strip-rail {
-        position: absolute;
-        left: clamp(20px, 6vw, 88px);
-        right: clamp(20px, 6vw, 88px);
-        bottom: clamp(24px, 5vh, 48px);
-        height: 1px;
-        background: var(--border-hairline);
-        z-index: 5;
-      }
-      .strip-rail-fill {
-        height: 100%;
-        background: var(--gold-electric);
-        transform: scaleX(0);
-        transform-origin: left center;
-      }
-      .strip-hint {
-        position: absolute;
-        bottom: clamp(40px, 8vh, 72px);
-        left: 50%;
-        transform: translateX(-50%);
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.28em;
-        text-transform: uppercase;
-        color: var(--chalk-dim);
-        opacity: 0.7;
-        z-index: 5;
-        pointer-events: none;
-      }
 
-      /* Reduced-motion fallback: native horizontal scroll, no pin */
-      #frames[data-mode="scroll"] .strip-pin {
-        height: auto;
-        min-height: 0;
-        display: block;
-        overflow: visible;
-        padding: clamp(80px, 10vh, 140px) 0 60px;
+      /* Reduced-motion fallback: plain vertical list, no sticky */
+      #frames[data-mode="plain"] .stack-card {
+        position: static;
+        height: 72vh;
+        min-height: 420px;
+        margin: 0 clamp(20px, 4vw, 56px) 24px;
       }
-      #frames[data-mode="scroll"] .strip-head { position: static; padding-bottom: 32px; pointer-events: auto; }
-      #frames[data-mode="scroll"] .strip-track {
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        padding-bottom: 24px;
-        will-change: auto;
-      }
-      #frames[data-mode="scroll"] .strip-panel { scroll-snap-align: center; }
-      #frames[data-mode="scroll"] .strip-rail,
-      #frames[data-mode="scroll"] .strip-hint { display: none; }
 
       @media (max-width: 640px) {
-        .strip-panel { width: 78vw; }
-        .strip-fig { height: 44vh; min-height: 280px; }
-        .strip-head-right { display: none; }
+        .stack-card { min-height: 480px; }
+        .stack-cap { flex-direction: column; align-items: flex-start; gap: 14px; }
+        .stack-view { padding-bottom: 0; }
       }
 
       /* ── Lightbox (unchanged) ───────────────────────────── */
@@ -401,13 +375,9 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
     </style>
   `;
 
-  const track = section.querySelector<HTMLElement>('.strip-track')!;
-  const countCur = section.querySelector<HTMLElement>('.strip-count-cur')!;
-  const chapterEl = section.querySelector<HTMLElement>('.strip-chapter')!;
-  const railFill = section.querySelector<HTMLElement>('.strip-rail-fill')!;
-  const hint = section.querySelector<HTMLElement>('.strip-hint')!;
-
-  track.querySelectorAll<HTMLButtonElement>('.strip-panel').forEach((btn) => {
+  const cards = [...section.querySelectorAll<HTMLElement>('.stack-card')];
+  cards.forEach((card) => {
+    const btn = card.querySelector<HTMLButtonElement>('.stack-hit')!;
     btn.addEventListener('click', () => openLightbox(Number(btn.dataset.i)));
   });
 
@@ -454,72 +424,64 @@ export function mountFrames(ctx: { root: HTMLElement; reduced: boolean }) {
 
   registerGSAP();
 
-  const travel = () => Math.max(0, track.scrollWidth - window.innerWidth);
-
-  // Head entrance
+  // Header entrance
   gsap.fromTo(
-    section.querySelector('.strip-head'),
-    { opacity: 0, y: -18 },
+    section.querySelector('.stack-head'),
+    { opacity: 0, y: 32 },
     {
       opacity: 1,
       y: 0,
-      duration: 0.9,
+      duration: 1,
       ease: 'expo.out',
-      scrollTrigger: { trigger: section, start: 'top 80%' },
+      scrollTrigger: { trigger: section.querySelector('.stack-head'), start: 'top 80%' },
     }
   );
 
-  // The strip: vertical scroll becomes horizontal travel (pinned).
-  const horiz = gsap.to(track, {
-    x: () => -travel(),
-    ease: 'none',
-    scrollTrigger: {
-      trigger: section,
-      start: 'top top',
-      end: () => '+=' + travel(),
-      pin: true,
-      scrub: 1,
-      invalidateOnRefresh: true,
-      anticipatePin: 1,
-      onUpdate: (self) => {
-        const idx = Math.min(frames.length - 1, Math.round(self.progress * (frames.length - 1)));
-        countCur.textContent = String(idx + 1).padStart(2, '0');
-        chapterEl.textContent = chapterFor(idx);
-        railFill.style.transform = `scaleX(${self.progress})`;
-        hint.style.opacity = String(0.7 * (1 - self.progress * 2));
-      },
-    },
+  // Deck effect: each covered card settles back — scales down + dims.
+  cards.forEach((card, i) => {
+    if (i === cards.length - 1) return;
+    const next = cards[i + 1];
+    gsap.to(card, {
+      scale: 0.92,
+      filter: 'brightness(0.45)',
+      transformOrigin: 'center top',
+      ease: 'none',
+      scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top+=120', scrub: true },
+    });
+    const cap = card.querySelector('.stack-cap');
+    if (cap) {
+      gsap.to(cap, {
+        opacity: 0,
+        y: -30,
+        ease: 'none',
+        scrollTrigger: { trigger: next, start: 'top bottom', end: 'top top+=240', scrub: true },
+      });
+    }
   });
 
-  // Per-frame parallax inside the travelling track.
-  track.querySelectorAll<HTMLElement>('.strip-panel').forEach((panel) => {
-    const img = panel.querySelector('img');
+  // Gentle parallax inside every frame.
+  cards.forEach((card) => {
+    const img = card.querySelector('img');
     if (!img) return;
     gsap.fromTo(
       img,
-      { xPercent: -5 },
+      { yPercent: -6 },
       {
-        xPercent: 5,
+        yPercent: 6,
         ease: 'none',
-        scrollTrigger: {
-          trigger: panel,
-          containerAnimation: horiz,
-          start: 'left right',
-          end: 'right left',
-          scrub: true,
-        },
+        scrollTrigger: { trigger: card, start: 'top bottom', end: 'bottom top', scrub: true },
       }
     );
   });
 
-  // Re-measure once photography settles (cached vs network).
+  // Re-measure once photography settles.
   let refreshed = false;
   const refreshOnce = () => {
     if (refreshed) return;
     refreshed = true;
     ScrollTrigger.refresh();
   };
-  const imgs = track.querySelectorAll('img');
+  const imgs = section.querySelectorAll('img');
   let loaded = 0;
   imgs.forEach((img) => {
     if ((img as HTMLImageElement).complete) {
