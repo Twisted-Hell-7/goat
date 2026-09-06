@@ -183,12 +183,124 @@ html.lenis body {
   place-items: center;
   padding: clamp(80px, 12vh, 160px) clamp(20px, 4vw, 56px);
   background-color: var(--void);
-  overflow-x: clip;
+  overflow: clip;
+  isolation: isolate;
+}
+/* atmosphere stack */
+.num-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.num-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 0%, transparent 42%, rgba(3, 3, 3, 0.55) 78%, var(--void) 100%),
+    linear-gradient(var(--obsidian) 0%, transparent 22%, transparent 72%, var(--obsidian) 100%);
+}
+/* centre-circle pitch marking — the almanac anchor */
+.num-pitch {
+  position: absolute;
+  left: -24vmin;
+  top: 50%;
+  translate: 0 -50%;
+  width: 108vmin;
+  height: 108vmin;
+}
+.num-pitch-circle {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(235, 235, 235, 0.08);
+  border-radius: 50%;
+}
+.num-pitch-circle::before {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border: 1px dashed rgba(235, 235, 235, 0.05);
+  border-radius: 50%;
+}
+.num-pitch-circle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  translate: -50% -50%;
+  border: 1px solid rgba(235, 235, 235, 0.14);
+  border-radius: 50%;
+}
+.num-pitch-dot {
+  position: absolute;
+  right: -34vw;
+  top: 50%;
+  width: 1px;
+  height: 140vmin;
+  translate: 0 -50%;
+  background: linear-gradient(transparent, rgba(235, 235, 235, 0.06) 30%, rgba(235, 235, 235, 0.06) 70%, transparent);
+}
+/* giant ghost shirt number */
+.num-ghost {
+  position: absolute;
+  right: -3vw;
+  bottom: -9vw;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(320px, 44vw, 660px);
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(235, 235, 235, 0.09);
+  user-select: none;
+  white-space: nowrap;
+}
+/* sanctioned tint: gold-ghost wash lives only behind the gold cell */
+.num-goldwash {
+  position: absolute;
+  right: -6%;
+  bottom: -10%;
+  width: 52%;
+  height: 62%;
+  background: radial-gradient(58% 58% at 62% 62%, var(--gold-ghost), transparent 70%);
+}
+/* cursor spotlight — chalk light */
+.num-spotlight {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 620px;
+  height: 620px;
+  background: radial-gradient(circle, rgba(235, 235, 235, 0.075), transparent 62%);
+  border-radius: 50%;
+  opacity: 0;
+}
+/* film grain */
+.num-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .num-wrap {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
+}
+/* section-break rule (PRD 7.3) — draws in on entry */
+.num-rule {
+  height: 1px;
+  margin-bottom: 22px;
+  background: var(--gold-electric);
+  opacity: 0.65;
+  transform: scaleX(0);
+  transform-origin: left center;
 }
 .num-head {
   display: flex;
@@ -231,6 +343,10 @@ html.lenis body {
   padding-top: 26px;
   margin-top: 26px;
   border-top: 1px solid var(--border-hairline);
+  transition: border-color 0.5s var(--ease-expo);
+}
+.num-cell:hover {
+  border-top-color: rgba(235, 235, 235, 0.38);
 }
 .num-cell--hero {
   grid-column: 1 / 8;
@@ -278,12 +394,24 @@ html.lenis body {
   letter-spacing: -0.03em;
   color: var(--chalk);
   font-variant-numeric: tabular-nums;
+  will-change: transform, filter;
+  transition: transform 0.55s var(--ease-expo), text-shadow 0.55s ease;
 }
-.num-value--hero { font-size: clamp(120px, 17vw, 230px); }
+.num-cell:hover .num-value {
+  transform: translateY(-4px);
+}
+.num-value--hero {
+  font-size: clamp(120px, 17vw, 230px);
+  text-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
 .num-value--mid { font-size: clamp(56px, 6vw, 92px); }
 .num-value--gold {
   font-size: clamp(88px, 11vw, 150px);
   color: var(--gold-electric);
+  text-shadow: 0 0 44px var(--gold-glow);
+}
+.num-cell--gold:hover .num-value--gold {
+  text-shadow: 0 0 70px var(--gold-glow);
 }
 .num-label {
   font-family: var(--font-mono);
@@ -302,6 +430,9 @@ html.lenis body {
 
 @media (max-width: 760px) {
   .num-note { display: none; }
+  .num-pitch { left: -52vmin; opacity: 0.7; }
+  .num-ghost { font-size: clamp(220px, 72vw, 360px); bottom: -14vw; opacity: 0.8; }
+  .num-spotlight { display: none; }
   .num-grid {
     grid-template-columns: repeat(2, 1fr);
     column-gap: 20px;
