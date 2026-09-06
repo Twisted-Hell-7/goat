@@ -1,27 +1,11 @@
 import { gsap, registerGSAP } from '../lib/gsap';
 import { stats } from '../lib/data';
 
-type Align = 'left' | 'right';
-type Placement = {
-  cell: string;
-  tier: string;
-  align: Align;
-  /** visual order on mobile (gold goes last) */
-  order: number;
-  sub?: string;
+// Monumental hero + ledger rows: one giant figure up top,
+// the rest as full-width editorial rows. Gold World Cup lands last.
+const ROW_SUBS: Record<string, string | undefined> = {
+  'World Cup': 'Qatar 2022 · Lusail',
 };
-
-// Staggered ledger: hero figure opens, mid stats sit on a shared
-// hairline rule, the gold World Cup "1" is isolated with silence above it.
-const PLACEMENT: Placement[] = [
-  { cell: 'num-cell--hero', tier: 'num-value--hero', align: 'left', order: 0, sub: 'Club + country · 2004 —' },
-  { cell: 'num-cell--side', tier: 'num-value--mid', align: 'left', order: 1 },
-  { cell: 'num-cell--row2a', tier: 'num-value--mid', align: 'left', order: 2 },
-  { cell: 'num-cell--gold', tier: 'num-value--gold', align: 'right', order: 6, sub: 'Qatar 2022 · Lusail' },
-  { cell: 'num-cell--row2b', tier: 'num-value--mid', align: 'left', order: 3 },
-  { cell: 'num-cell--row2c', tier: 'num-value--mid', align: 'left', order: 4 },
-  { cell: 'num-cell--copa', tier: 'num-value--mid', align: 'left', order: 5 },
-];
 
 export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
   const section = ctx.root.querySelector<HTMLElement>('#numbers')!;
@@ -63,60 +47,80 @@ export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
   note.textContent = 'Club + country · 2004 —';
   head.append(eyebrow, note);
 
-  const grid = document.createElement('div');
-  grid.className = 'num-grid';
-  grid.setAttribute('role', 'list');
-  grid.setAttribute('aria-label', 'Lionel Messi career statistics');
+  // ── monument: the 843 ──
+  const heroStat = stats[0];
+  const monument = document.createElement('div');
+  monument.className = 'num-monument';
+  monument.setAttribute('role', 'listitem');
+  monument.setAttribute('aria-label', `${heroStat.label}: ${heroStat.value}`);
+  monument.innerHTML = `
+    <span class="num-index" aria-hidden="true">01 / 07</span>
+    <span class="num-monument-value tabular" aria-hidden="true">0</span>
+    <span class="num-monument-label">${heroStat.label}</span>
+    <span class="num-sub">Club + country · 2004 —</span>
+  `;
+  const heroValue = monument.querySelector<HTMLElement>('.num-monument-value')!;
+  const heroLabel = monument.querySelector<HTMLElement>('.num-monument-label')!;
 
-  type Row = { cell: HTMLElement; value: HTMLElement; label: HTMLElement; target: number; gold: boolean };
+  // ── ledger rows: everything else, gold last ──
+  const ledger = document.createElement('div');
+  ledger.className = 'num-ledger';
+  ledger.setAttribute('role', 'list');
+  ledger.setAttribute('aria-label', 'Lionel Messi career statistics');
+
+  type Row = { row: HTMLElement; value: HTMLElement; label: HTMLElement; target: number; gold: boolean };
   const rows: Row[] = [];
 
-  stats.forEach((s, i) => {
-    const p = PLACEMENT[i];
+  const rest = [...stats.slice(1).filter((s) => !s.emphasis), ...stats.slice(1).filter((s) => s.emphasis)];
+  rest.forEach((s, k) => {
     const gold = !!s.emphasis;
+    const row = document.createElement('div');
+    row.className = `num-row${gold ? ' num-row--gold' : ''}`;
+    row.setAttribute('role', 'listitem');
+    row.setAttribute('aria-label', `${s.label}: ${s.value}`);
 
-    const cell = document.createElement('div');
-    cell.className = `num-cell ${p.cell}`;
-    cell.setAttribute('role', 'listitem');
-    cell.setAttribute('aria-label', `${s.label}: ${s.value}`);
-    cell.style.order = String(p.order);
-
+    const left = document.createElement('div');
+    left.className = 'num-row-left';
     const index = document.createElement('span');
     index.className = 'num-index';
     index.setAttribute('aria-hidden', 'true');
-    index.textContent = `${String(i + 1).padStart(2, '0')} / 07`;
-
-    const value = document.createElement('span');
-    value.className = `num-value tabular ${p.tier}`;
-    value.setAttribute('aria-hidden', 'true');
-    value.textContent = '0';
-
+    index.textContent = `${String(k + 2).padStart(2, '0')} / 07`;
     const label = document.createElement('span');
     label.className = 'num-label';
     label.textContent = s.label;
-
-    cell.append(index, value, label);
-
-    if (p.sub) {
+    left.append(index, label);
+    const subText = ROW_SUBS[s.label];
+    if (subText) {
       const sub = document.createElement('span');
       sub.className = 'num-sub';
-      sub.textContent = p.sub;
-      cell.append(sub);
+      sub.textContent = subText;
+      left.append(sub);
     }
 
-    grid.append(cell);
-    rows.push({ cell, value, label, target: s.value, gold });
+    const value = document.createElement('span');
+    value.className = `num-row-value tabular${gold ? ' num-row-value--gold' : ''}`;
+    value.setAttribute('aria-hidden', 'true');
+    value.textContent = '0';
+
+    row.append(left, value);
+    ledger.append(row);
+    rows.push({ row, value, label, target: s.value, gold });
   });
 
-  wrap.append(rule, head, grid);
+  wrap.append(rule, head, monument, ledger);
   section.append(wrap);
 
+  const setFinalHero = () => {
+    heroValue.textContent = String(heroStat.value);
+    heroLabel.style.opacity = '1';
+  };
   const setFinal = (r: Row) => {
     r.value.textContent = String(r.target);
     r.label.style.opacity = '1';
   };
 
   if (reduced) {
+    setFinalHero();
     rows.forEach(setFinal);
     return;
   }
@@ -139,17 +143,20 @@ export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
 
   gsap.set(spotlight, { xPercent: -50, yPercent: -50, opacity: 0 });
   gsap.set(head, { opacity: 0, y: 16 });
+  gsap.set([heroValue, heroLabel], { opacity: 0 });
+  gsap.set(heroValue, { y: 60, filter: 'blur(12px)' });
+  gsap.set(heroLabel, { y: 12 });
   gsap.set(
-    rows.map((r) => r.label),
-    { opacity: 0, y: 12 }
+    rows.map((r) => r.row),
+    { opacity: 0, y: 24 }
   );
   gsap.set(
     rows.map((r) => r.value),
-    { opacity: 0, y: 26, filter: 'blur(8px)' }
+    { filter: 'blur(8px)' }
   );
   gsap.set(
-    rows.map((r) => r.cell),
-    { opacity: 0 }
+    rows.map((r) => r.label),
+    { opacity: 0, y: 10 }
   );
 
   const tl = gsap.timeline({
@@ -160,43 +167,48 @@ export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
   tl.to(head, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' }, 0.1);
   tl.to(spotlight, { opacity: 1, duration: 1.2, ease: 'power3.out' }, 0.2);
 
-  // Animation order: hero → mids in ledger order → gold lands last, in silence.
-  const seq = [...rows.filter((r) => !r.gold)];
-  const gold = rows.find((r) => r.gold)!;
+  // Monument counts first, big and slow.
+  const heroObj = { v: 0 };
+  tl.to(heroValue, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.1, ease: 'expo.out' }, 0.2);
+  tl.to(
+    heroObj,
+    {
+      v: heroStat.value,
+      duration: 2.2,
+      ease: 'expo.out',
+      onUpdate: () => (heroValue.textContent = String(Math.round(heroObj.v))),
+      onComplete: () => (heroValue.textContent = String(heroStat.value)),
+    },
+    0.2
+  );
+  tl.to(heroLabel, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 1.4);
 
+  // Rows ripple in after the monument; gold lands last, in silence.
+  const seq = rows.filter((r) => !r.gold);
+  const gold = rows.find((r) => r.gold)!;
   seq.forEach((r, k) => {
-    const at = 0.15 + k * 0.12;
-    const dur = k === 0 ? 2.0 : 1.2;
+    const at = 0.9 + k * 0.14;
     const obj = { v: 0 };
-    tl.to(r.cell, { opacity: 1, duration: 0.6, ease: 'power3.out' }, at);
-    tl.to(
-      r.value,
-      { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out' },
-      at
-    );
+    tl.to(r.row, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, at);
+    tl.to(r.value, { filter: 'blur(0px)', duration: 0.6, ease: 'expo.out' }, at);
     tl.to(
       obj,
       {
         v: r.target,
-        duration: dur,
+        duration: 1.2,
         ease: 'expo.out',
         onUpdate: () => (r.value.textContent = String(Math.round(obj.v))),
         onComplete: () => (r.value.textContent = String(r.target)),
       },
       at
     );
-    tl.to(r.label, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, at + dur * 0.7);
+    tl.to(r.label, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, at + 0.35);
   });
 
-  const lastStart = 0.15 + (seq.length - 1) * 0.12;
-  const goldAt = lastStart + 1.2 + 0.8;
+  const goldAt = 0.9 + seq.length * 0.14 + 0.8;
   const g = { v: 0 };
-  tl.to(gold.cell, { opacity: 1, duration: 0.8, ease: 'power3.out' }, goldAt);
-  tl.to(
-    gold.value,
-    { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.0, ease: 'expo.out' },
-    goldAt
-  );
+  tl.to(gold.row, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, goldAt);
+  tl.to(gold.value, { filter: 'blur(0px)', duration: 0.8, ease: 'expo.out' }, goldAt);
   tl.to(
     g,
     {

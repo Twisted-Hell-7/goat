@@ -329,57 +329,77 @@ html.lenis body {
   color: var(--chalk-dim);
   text-align: right;
 }
-.num-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  column-gap: clamp(20px, 3vw, 40px);
-  row-gap: 0;
-}
-.num-cell {
+.num-monument {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  padding-bottom: clamp(36px, 6vh, 72px);
+  border-bottom: 1px solid var(--border-hairline);
+}
+.num-monument-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  color: var(--chalk);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(180px, 30vw, 430px);
+  text-shadow: 0 24px 90px rgba(0, 0, 0, 0.6);
+  will-change: transform, filter;
+}
+.num-monument-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(28px, 4vw, 54px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--chalk);
+}
+.num-ledger {
+  display: flex;
+  flex-direction: column;
+}
+.num-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 16px;
+  padding: clamp(18px, 3vh, 30px) 0;
+  border-bottom: 1px solid var(--border-hairline);
+  transition: border-color 0.5s var(--ease-expo), background 0.5s ease;
+}
+.num-row:hover {
+  border-bottom-color: rgba(235, 235, 235, 0.38);
+}
+.num-row-left {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
   min-width: 0;
-  padding-top: 26px;
-  margin-top: 26px;
-  border-top: 1px solid var(--border-hairline);
-  transition: border-color 0.5s var(--ease-expo);
+  flex-wrap: wrap;
 }
-.num-cell:hover {
-  border-top-color: rgba(235, 235, 235, 0.38);
-}
-.num-cell--hero {
-  grid-column: 1 / 8;
-  grid-row: 1;
-  border-top: 0;
-  margin-top: 0;
-  padding-top: 0;
-}
-.num-cell--side {
-  grid-column: 8 / 13;
-  grid-row: 1;
-  border-top: 0;
-  margin-top: 0;
-  padding-top: 0;
-  align-self: end;
-  padding-bottom: 6px;
-}
-.num-cell--row2a { grid-column: 1 / 5; grid-row: 2; }
-.num-cell--row2b { grid-column: 5 / 9; grid-row: 2; }
-.num-cell--row2c { grid-column: 9 / 13; grid-row: 2; }
-.num-cell--copa {
-  grid-column: 1 / 8;
-  grid-row: 3;
-  margin-top: clamp(48px, 8vh, 96px);
-  padding-top: 30px;
-}
-.num-cell--gold {
-  grid-column: 8 / 13;
-  grid-row: 3;
-  align-items: flex-end;
+.num-row-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--chalk);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(44px, 5.5vw, 84px);
   text-align: right;
-  margin-top: clamp(48px, 8vh, 96px);
-  padding-top: 30px;
+  will-change: filter;
+  transition: transform 0.55s var(--ease-expo), text-shadow 0.55s ease;
+}
+.num-row:hover .num-row-value {
+  transform: translateY(-3px);
+}
+.num-row--gold .num-row-value--gold {
+  color: var(--gold-electric);
+  font-size: clamp(56px, 7vw, 110px);
+  text-shadow: 0 0 44px var(--gold-glow);
+}
+.num-row--gold:hover .num-row-value--gold {
+  text-shadow: 0 0 70px var(--gold-glow);
 }
 .num-index {
   font-family: var(--font-mono);
@@ -387,38 +407,15 @@ html.lenis body {
   letter-spacing: 0.2em;
   color: var(--chalk-subtle);
 }
-.num-value {
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: var(--chalk);
-  font-variant-numeric: tabular-nums;
-  will-change: transform, filter;
-  transition: transform 0.55s var(--ease-expo), text-shadow 0.55s ease;
-}
-.num-cell:hover .num-value {
-  transform: translateY(-4px);
-}
-.num-value--hero {
-  font-size: clamp(120px, 17vw, 230px);
-  text-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
-}
-.num-value--mid { font-size: clamp(56px, 6vw, 92px); }
-.num-value--gold {
-  font-size: clamp(88px, 11vw, 150px);
-  color: var(--gold-electric);
-  text-shadow: 0 0 44px var(--gold-glow);
-}
-.num-cell--gold:hover .num-value--gold {
-  text-shadow: 0 0 70px var(--gold-glow);
-}
 .num-label {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: 12px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--chalk-dim);
+}
+.num-row--gold .num-label {
+  color: var(--chalk);
 }
 .num-sub {
   font-family: var(--font-mono);
@@ -433,33 +430,8 @@ html.lenis body {
   .num-pitch { left: -52vmin; opacity: 0.7; }
   .num-ghost { font-size: clamp(220px, 72vw, 360px); bottom: -14vw; opacity: 0.8; }
   .num-spotlight { display: none; }
-  .num-grid {
-    grid-template-columns: repeat(2, 1fr);
-    column-gap: 20px;
-  }
-  .num-cell--hero,
-  .num-cell--gold {
-    grid-column: 1 / -1;
-  }
-  .num-cell--side,
-  .num-cell--row2a,
-  .num-cell--row2b,
-  .num-cell--row2c,
-  .num-cell--copa {
-    grid-column: auto;
-    grid-row: auto;
-  }
-  .num-cell--side {
-    border-top: 1px solid var(--border-hairline);
-    margin-top: 26px;
-    padding-top: 26px;
-    align-self: stretch;
-    padding-bottom: 0;
-  }
-  .num-cell--gold {
-    grid-row: auto;
-    margin-top: 40px;
-  }
-  .num-cell--copa { grid-row: auto; margin-top: 26px; }
-  .num-value--hero { font-size: clamp(96px, 28vw, 150px); }
+  .num-monument-value { font-size: clamp(130px, 38vw, 220px); }
+  .num-row { grid-template-columns: 1fr; gap: 8px; }
+  .num-row-value { text-align: left; font-size: clamp(40px, 13vw, 64px); }
+  .num-row--gold .num-row-value--gold { font-size: clamp(48px, 15vw, 76px); }
 }
