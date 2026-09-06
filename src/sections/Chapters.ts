@@ -13,20 +13,22 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     background: 'var(--void)',
     display: 'grid',
     placeItems: 'center',
-  } as CSSStyleDeclaration);
+  });
 
+  // ── stage ──────────────────────────────────────────────────────
   const stage = document.createElement('div');
   Object.assign(stage.style, {
     position: 'relative',
     width: '100%',
     maxWidth: '1280px',
     height: 'min(82vh, 720px)',
-    perspective: '2200px',
+    perspective: '2400px',
     margin: '0 auto',
-  } as CSSStyleDeclaration);
+    perspectiveOrigin: '50% 50%',
+  });
   section.append(stage);
 
-  // two "pages": the one showing and the one flipping in
+  // ── page factory ───────────────────────────────────────────────
   const make = (i: number) => {
     const c = chapters[i];
     const page = document.createElement('article');
@@ -41,22 +43,24 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
       backfaceVisibility: 'hidden',
       opacity: '0',
       pointerEvents: 'none',
-    } as CSSStyleDeclaration);
+    });
+
     page.innerHTML = `
-      <div style="padding:clamp(32px, 6vh, 80px) clamp(20px, 4vw, 60px);display:flex;flex-direction:column;justify-content:center;gap:18px;background:linear-gradient(135deg, var(--void) 0%, var(--obsidian) 100%);position:relative;z-index:2;">
-        <span class="t-meta">${c.index}</span>
-        <h2 class="t-display" style="font-size:clamp(48px, 7vw, 96px);margin:0;color:var(--chalk);">${c.era}</h2>
-        <span style="font-family:var(--font-body);font-size:13px;color:${c.accent};letter-spacing:0.08em;">${c.years}</span>
-        <blockquote class="t-editorial" style="margin:14px 0 0;font-size:clamp(18px, 2vw, 26px);line-height:1.3;color:var(--chalk);max-width:40ch;">&ldquo;${c.quote}&rdquo;</blockquote>
-        <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--gold-electric);display:inline-flex;align-items:center;gap:10px;width:fit-content;">
+      <div class="ch-left" style="padding:clamp(32px, 6vh, 80px) clamp(20px, 4vw, 60px);display:flex;flex-direction:column;justify-content:center;gap:18px;background:linear-gradient(135deg, var(--void) 0%, var(--obsidian) 100%);position:relative;z-index:2;">
+        <span class="t-meta ch-meta">${c.index}</span>
+        <h2 class="t-display ch-era" style="font-size:clamp(48px, 7vw, 96px);margin:0;color:var(--chalk);font-weight:700;letter-spacing:-0.03em;">${c.era}</h2>
+        <span class="ch-years" style="font-family:var(--font-body);font-size:13px;color:${c.accent};letter-spacing:0.08em;">${c.years}</span>
+        <blockquote class="t-editorial ch-quote" style="margin:14px 0 0;font-size:clamp(18px, 2vw, 26px);line-height:1.3;color:var(--chalk);max-width:40ch;font-style:italic;">&ldquo;${c.quote}&rdquo;</blockquote>
+        <div class="ch-stat" style="margin-top:20px;padding-top:14px;border-top:1px solid var(--gold-electric);display:inline-flex;align-items:center;gap:10px;width:fit-content;">
           <span style="font-family:var(--font-body);font-size:10px;letter-spacing:0.2em;color:var(--gold-electric);text-transform:uppercase;">Key Stat</span>
           <span style="font-family:var(--font-body);font-size:13px;color:var(--chalk);">${c.stat}</span>
         </div>
-        ${c.redCard ? `<p style="margin:18px 0 0;font-family:var(--font-body);font-size:11px;color:var(--scar-red);letter-spacing:0.08em;">2006 World Cup · Red card vs Germany</p>` : ''}
+        ${c.redCard ? `<p class="ch-red" style="margin:18px 0 0;font-family:var(--font-body);font-size:11px;color:var(--scar-red);letter-spacing:0.08em;">2006 World Cup · Red card vs Germany</p>` : ''}
       </div>
-      <div style="position:relative;overflow:hidden;background:var(--void);">
-        <img src="${c.image}" alt="${c.era}, ${c.years}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.9;" />
+      <div class="ch-right" style="position:relative;overflow:hidden;background:var(--void);">
+        <img class="ch-img" src="${c.image}" alt="${c.era}, ${c.years}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.9;" />
         <div aria-hidden="true" style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%, transparent 0%, rgba(3,3,3,0.55) 80%);"></div>
+        <div class="ch-spine" aria-hidden="true" style="position:absolute;top:0;bottom:0;width:40px;background:linear-gradient(to right, rgba(0,0,0,0.5), transparent);"></div>
       </div>
       <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(to right, transparent 0%, transparent 60%, rgba(0,0,0,0.25) 100%);mix-blend-mode:multiply;pointer-events:none;"></div>
     `;
@@ -66,7 +70,55 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
   const pages = chapters.map((_, i) => make(i));
   pages.forEach((p) => stage.append(p));
 
-  // ── chapter dots ──────────────────────────────────────────────
+  // ── edge arrows ───────────────────────────────────────────────
+  const mkArrow = (side: 'left' | 'right') => {
+    const b = document.createElement('button');
+    b.className = `ch-arrow ch-arrow--${side}`;
+    b.setAttribute('aria-label', side === 'left' ? 'Previous chapter' : 'Next chapter');
+    b.dataset.cursor = 'hover';
+    const styles: Record<string, string> = {
+      position: 'absolute',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      width: '56px',
+      height: '56px',
+      borderRadius: '50%',
+      border: '1px solid var(--border-hairline)',
+      background: 'rgba(3,3,3,0.4)',
+      backdropFilter: 'blur(4px)',
+      color: 'var(--chalk)',
+      fontFamily: 'var(--font-display)',
+      fontSize: '20px',
+      display: 'grid',
+      placeItems: 'center',
+      zIndex: '20',
+      transition: 'background 300ms ease, border-color 300ms ease, transform 300ms ease',
+      left: side === 'left' ? '24px' : 'auto',
+      right: side === 'right' ? '24px' : 'auto',
+    };
+    Object.assign(b.style, styles);
+    b.textContent = side === 'left' ? '←' : '→';
+    b.addEventListener('mouseenter', () => {
+      b.style.background = 'var(--chalk)';
+      b.style.color = 'var(--void)';
+      b.style.borderColor = 'var(--chalk)';
+    });
+    b.addEventListener('mouseleave', () => {
+      b.style.background = 'rgba(3,3,3,0.4)';
+      b.style.color = 'var(--chalk)';
+      b.style.borderColor = 'var(--border-hairline)';
+    });
+    b.addEventListener('click', () => {
+      manualOverride = true;
+      go(current + (side === 'right' ? 1 : -1));
+    });
+    return b;
+  };
+  const arrowL = mkArrow('left');
+  const arrowR = mkArrow('right');
+  stage.append(arrowL, arrowR);
+
+  // ── chapter dots + progress bar ───────────────────────────────
   const dots = document.createElement('div');
   Object.assign(dots.style, {
     position: 'absolute',
@@ -75,8 +127,10 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     transform: 'translateX(-50%)',
     display: 'flex',
     gap: '10px',
-    zIndex: '10',
-  } as CSSStyleDeclaration);
+zIndex: '10',
+    alignItems: 'center',
+  });
+
   const dotEls: HTMLButtonElement[] = [];
   chapters.forEach((c, i) => {
     const b = document.createElement('button');
@@ -87,7 +141,8 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
       height: '2px',
       background: 'rgba(235,235,235,0.25)',
       transition: 'background 400ms ease, width 400ms ease',
-    } as CSSStyleDeclaration);
+      padding: '0',
+    });
     b.addEventListener('click', () => {
       manualOverride = true;
       go(i);
@@ -95,18 +150,69 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     dots.append(b);
     dotEls.push(b);
   });
+
+  // Progress bar background under dots
+  const progressWrap = document.createElement('div');
+  Object.assign(progressWrap.style, {
+    position: 'absolute',
+    bottom: '12px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '200px',
+    height: '1px',
+    background: 'rgba(235,235,235,0.15)',
+    zIndex: '5',
+  });
+  const progressBar = document.createElement('div');
+  Object.assign(progressBar.style, {
+    width: '0%',
+    height: '100%',
+    background: 'var(--gold-electric)',
+  });
+  progressWrap.append(progressBar);
+
   section.append(dots);
+  section.append(progressWrap);
 
   // ── state + animation ─────────────────────────────────────────
   let current = 0;
   let manualOverride = false;
   let timer: number | null = null;
+  let progressRAF: number | null = null;
+  let progressStart = 0;
+  const ROTATE_MS = 5000;
+  const FLIP_S = 1.2;
+
+  const easeFlip = 'power3.inOut';
 
   const startTimer = () => {
     if (timer != null) window.clearTimeout(timer);
+    progressStart = performance.now();
+    if (progressRAF != null) cancelAnimationFrame(progressRAF);
+    const tick = () => {
+      const elapsed = performance.now() - progressStart;
+      const pct = Math.min(100, (elapsed / ROTATE_MS) * 100);
+      progressBar.style.width = pct + '%';
+      if (elapsed < ROTATE_MS && !paused && !manualOverride) {
+        progressRAF = requestAnimationFrame(tick);
+      }
+    };
+    progressRAF = requestAnimationFrame(tick);
     timer = window.setTimeout(() => {
       go((current + 1) % chapters.length);
-    }, 5000);
+    }, ROTATE_MS);
+  };
+
+  const stopTimer = () => {
+    if (timer != null) {
+      window.clearTimeout(timer);
+      timer = null;
+    }
+    if (progressRAF != null) {
+      cancelAnimationFrame(progressRAF);
+      progressRAF = null;
+    }
+    progressBar.style.width = '0%';
   };
 
   const updateDots = () => {
@@ -121,9 +227,35 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     });
   };
 
-  const go = (next: number) => {
+  const resetContentState = (page: HTMLElement) => {
+    gsap.set(page.querySelector('.ch-meta'), { opacity: 0, y: 12 });
+    gsap.set(page.querySelector('.ch-era'), { opacity: 0, y: 24 });
+    gsap.set(page.querySelector('.ch-years'), { opacity: 0, y: 12 });
+    gsap.set(page.querySelector('.ch-quote'), { opacity: 0, y: 18 });
+    gsap.set(page.querySelector('.ch-stat'), { opacity: 0, y: 10 });
+    const red = page.querySelector('.ch-red');
+    if (red) gsap.set(red, { opacity: 0, y: 10 });
+    const img = page.querySelector('.ch-img');
+    if (img) gsap.set(img, { scale: 1.08 });
+  };
+
+  const animateContentIn = (page: HTMLElement, startAt: number) => {
+    const tl = gsap.timeline();
+    tl.to(page.querySelector('.ch-meta'),  { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, startAt);
+    tl.to(page.querySelector('.ch-era'),   { opacity: 1, y: 0, duration: 0.8, ease: 'expo.out' }, startAt + 0.05);
+    tl.to(page.querySelector('.ch-years'), { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, startAt + 0.15);
+    tl.to(page.querySelector('.ch-quote'), { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, startAt + 0.25);
+    tl.to(page.querySelector('.ch-stat'),  { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, startAt + 0.4);
+    const red = page.querySelector('.ch-red');
+    if (red) tl.to(red, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, startAt + 0.5);
+    const img = page.querySelector('.ch-img');
+    if (img) tl.to(img, { scale: 1, duration: 1.6, ease: 'expo.out' }, startAt);
+    return tl;
+  };
+
+  const go = (nextRaw: number) => {
+    const next = ((nextRaw % chapters.length) + chapters.length) % chapters.length;
     if (next === current) {
-      // still restart timer
       if (!manualOverride) startTimer();
       return;
     }
@@ -131,14 +263,25 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
       window.clearTimeout(timer);
       timer = null;
     }
+    if (progressRAF != null) {
+      cancelAnimationFrame(progressRAF);
+      progressRAF = null;
+    }
+    progressBar.style.width = '0%';
 
     const from = pages[current];
     const to = pages[next];
     const dir = next > current ? 1 : -1;
+    const origin = dir > 0 ? 'left center' : 'right center';
 
     if (reduced) {
       gsap.set(from, { opacity: 0 });
-      gsap.set(to, { opacity: 1, x: 0, rotateY: 0 });
+      gsap.set(to, { opacity: 1, x: 0, rotateY: 0, scale: 1 });
+      gsap.fromTo(
+        to.querySelectorAll('.ch-meta, .ch-era, .ch-years, .ch-quote, .ch-stat, .ch-red'),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.06 }
+      );
       current = next;
       updateDots();
       if (!manualOverride) startTimer();
@@ -146,71 +289,91 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     }
 
     registerGSAP();
+    resetContentState(to);
 
-    // place incoming page on the right (or left if going back), rotated -90deg
+    // Position the incoming page off-screen on the right (or left if going back),
+    // tilted away from camera as if its leading edge is just starting to come around.
     gsap.set(to, {
       opacity: 1,
-      xPercent: dir * 8,
-      rotateY: dir * -60,
-      transformOrigin: dir > 0 ? 'left center' : 'right center',
+      xPercent: dir * 12,
+      rotateY: dir * -90,
+      transformOrigin: origin,
+      zIndex: dir > 0 ? 3 : 1,
     });
+    const fromZ = gsap.getProperty(from, 'zIndex') as string;
+    gsap.set(from, { zIndex: dir > 0 ? 2 : 4 });
 
-    // page-flip timeline
     const tl = gsap.timeline({
       onComplete: () => {
-        gsap.set(from, { opacity: 0, x: 0, rotateY: 0 });
+        gsap.set(from, { opacity: 0, x: 0, rotateY: 0, zIndex: fromZ });
+        gsap.set(to, { zIndex: dir > 0 ? 4 : 2 });
         current = next;
         updateDots();
         if (!manualOverride) startTimer();
       },
     });
 
+    // The peel: outgoing page rotates from 0 to +90 (or -90 if going back).
+    // Slight z-push on the spine adds depth. The shadow on the page comes
+    // from a CSS gradient overlay on .ch-right — we modulate it via opacity.
     tl.to(
       from,
       {
-        rotateY: dir * 60,
-        xPercent: -dir * 4,
-        duration: 1.1,
-        ease: 'power2.in',
+        rotateY: dir * 90,
+        xPercent: dir * 4,
+        duration: FLIP_S,
+        ease: easeFlip,
       },
       0
     );
+    tl.to(
+      from,
+      { opacity: 0, duration: 0.25, ease: 'power2.in' },
+      FLIP_S - 0.3
+    );
+
+    // Incoming page rotates in from -90 (or +90) to 0.
     tl.to(
       to,
       {
         rotateY: 0,
         xPercent: 0,
-        duration: 1.1,
-        ease: 'power2.out',
+        duration: FLIP_S,
+        ease: easeFlip,
       },
       0
     );
-    tl.to(
-      from,
-      { opacity: 0, duration: 0.4, ease: 'power2.in' },
-      0.4
-    );
+
+    // Content stagger on the incoming page starts as it crosses the midpoint.
+    const contentStart = FLIP_S * 0.45;
+    animateContentIn(to, contentStart);
   };
 
   // ── controls ──────────────────────────────────────────────────
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'ArrowRight') {
       manualOverride = true;
-      go((current + 1) % chapters.length);
+      stopTimer();
+      go(current + 1);
     } else if (e.key === 'ArrowLeft') {
       manualOverride = true;
-      go((current - 1 + chapters.length) % chapters.length);
+      stopTimer();
+      go(current - 1);
     }
   };
   window.addEventListener('keydown', onKey);
 
-  // pause on hover, resume on leave
+  // pause on hover, resume on leave — but resume timer only if not manually overridden
   let paused = false;
   stage.addEventListener('mouseenter', () => {
     paused = true;
     if (timer != null) {
       window.clearTimeout(timer);
       timer = null;
+    }
+    if (progressRAF != null) {
+      cancelAnimationFrame(progressRAF);
+      progressRAF = null;
     }
   });
   stage.addEventListener('mouseleave', () => {
@@ -220,9 +383,23 @@ export function mountChapters(ctx: { root: HTMLElement; reduced: boolean }) {
     }
   });
 
+  // Also pause when tab is hidden
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (timer != null) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
+    } else if (!paused && !manualOverride) {
+      startTimer();
+    }
+  });
+
   // ── start ─────────────────────────────────────────────────────
   registerGSAP();
-  gsap.set(pages[0], { opacity: 1, x: 0, rotateY: 0 });
+  gsap.set(pages[0], { opacity: 1, x: 0, rotateY: 0, zIndex: 4 });
+  resetContentState(pages[0]);
+  animateContentIn(pages[0], 0);
   updateDots();
   if (!reduced) startTimer();
 }
