@@ -132,14 +132,28 @@ export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
   const pitch = bg.querySelector<HTMLElement>('.num-pitch')!;
 
   // Spotlight follows the cursor — chalk light, never gold.
-  const sx = gsap.quickTo(spotlight, 'x', { duration: 0.6, ease: 'power3.out' });
-  const sy = gsap.quickTo(spotlight, 'y', { duration: 0.6, ease: 'power3.out' });
-  const onMove = (e: PointerEvent) => {
-    const r = section.getBoundingClientRect();
-    sx(e.clientX - r.left);
-    sy(e.clientY - r.top);
-  };
-  section.addEventListener('pointermove', onMove);
+  // Touch devices get a slow ambient drift instead so the section never reads flat.
+  const canHover = window.matchMedia('(hover: hover)').matches;
+  if (canHover) {
+    const sx = gsap.quickTo(spotlight, 'x', { duration: 0.6, ease: 'power3.out' });
+    const sy = gsap.quickTo(spotlight, 'y', { duration: 0.6, ease: 'power3.out' });
+    const onMove = (e: PointerEvent) => {
+      const r = section.getBoundingClientRect();
+      sx(e.clientX - r.left);
+      sy(e.clientY - r.top);
+    };
+    section.addEventListener('pointermove', onMove);
+  } else {
+    gsap.set(spotlight, { left: '50%', top: '38%' });
+    gsap.to(spotlight, {
+      x: 60,
+      y: 40,
+      duration: 5,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+    });
+  }
 
   gsap.set(spotlight, { xPercent: -50, yPercent: -50, opacity: 0 });
   gsap.set(head, { opacity: 0, y: 16 });
@@ -222,6 +236,17 @@ export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
   );
   tl.to(gold.label, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, goldAt + 1.1);
 
+  // Monument keeps drifting on scroll so the section never sits dead.
+  gsap.to(monument, {
+    yPercent: -6,
+    ease: 'none',
+    scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 1 },
+  });
+  gsap.to(ledger, {
+    yPercent: 3,
+    ease: 'none',
+    scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 1 },
+  });
   // Ambient parallax: ghost numeral drifts, pitch ring breathes — scrubbed.
   gsap.to(ghost, {
     yPercent: 22,
@@ -230,7 +255,7 @@ export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
   });
   gsap.fromTo(
     pitch,
-    { scale: 1, opacity: 0.7 },
+    { scale: 1, opacity: 0.85 },
     {
       scale: 1.12,
       opacity: 1,
@@ -238,4 +263,16 @@ export function mountNumbers(ctx: { root: HTMLElement; reduced: boolean }) {
       scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 1.2 },
     }
   );
+
+  // Row illumination follows the cursor — full-row chalk wash.
+  rows.forEach((r) => {
+    r.row.addEventListener('pointerenter', () => {
+      gsap.to(r.value, { x: 8, duration: 0.45, ease: 'expo.out' });
+      gsap.to(r.label, { color: '#EBEBEB', duration: 0.35 });
+    });
+    r.row.addEventListener('pointerleave', () => {
+      gsap.to(r.value, { x: 0, duration: 0.6, ease: 'expo.out' });
+      gsap.to(r.label, { color: '#6B6B6B', duration: 0.4 });
+    });
+  });
 }
