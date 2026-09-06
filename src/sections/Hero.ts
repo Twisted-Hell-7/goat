@@ -28,6 +28,7 @@ export async function mountHero(ctx: { root: HTMLElement; reduced: boolean }) {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+    objectPosition: '50% 28%',
     zIndex: '0',
     opacity: '0.6',
   } as CSSStyleDeclaration);
